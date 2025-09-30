@@ -1,0 +1,20 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+
+# Binaries and temporary files
+bin/
+obj/
+
+# Packages
+*.nupkg
+
+# Generated files
+TestResults/
+
+# Log files
+*.log
+
+# Rider
+.idea
