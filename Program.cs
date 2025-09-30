@@ -1,33 +1,53 @@
-var builder = WebApplication.CreateBuilder(args);
+name: SonarCloud Scan
 
-// Add services to the container.
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-    {
-        Title = "GearShop API",
-        Version = "v1",
-        Description = "API para gerenciar a loja GearShop"
-    });
-});
+on:
+push:
+branches:
+-main
+  pull_request:
+types: [opened, synchronize, reopened]
 
-// Adiciona os serviços para controllers
-builder.Services.AddControllers();
+jobs:
+build:
+name: Build and Analyze
+    runs-on: windows - latest
+    steps:
+-name: Checkout code
+        uses: actions / checkout@v4
+        with:
+          fetch - depth: 0
 
-var app = builder.Build();
+      - name: Cache SonarQube Cloud packages
+        uses: actions / cache@v4
+        with:
+          path: ~\sonar\cache
+          key: ${ { runner.os } }
+-sonar
+          restore - keys: ${ { runner.os } }
+-sonar
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+      - name: Cache SonarQube Cloud scanner
+        id: cache - sonar - scanner
+        uses: actions / cache@v4
+        with:
+          path: ${ { runner.temp } }\scanner
+          key: ${ { runner.os } }
+-sonar - scanner
+          restore - keys: ${ { runner.os } }
+-sonar - scanner
 
-app.UseHttpsRedirection();
+      - name: Install SonarQube Cloud scanner
+        if: steps.cache - sonar - scanner.outputs.cache - hit != 'true'
+        shell: powershell
+        run: |
+          New - Item - Path ${ { runner.temp } }\scanner - ItemType Directory
+          dotnet tool update dotnet-sonarscanner --tool-path ${{ runner.temp }}\scanner
 
-// Mapeia os endpoints dos controllers
-app.MapControllers();
-
-app.Run();
-dsatwq
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${ { secrets.SONAR_TOKEN } }
+shell: powershell
+run: |
+          ${ { runner.temp } }\scanner\dotnet-sonarscanner begin /k:"GearShop-Unimar_back-end" / o:"gearshop-unimar" / d:sonar.token = "${{ secrets.SONAR_TOKEN }}"
+          dotnet build
+          ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token = "${{ secrets.SONAR_TOKEN }}"
