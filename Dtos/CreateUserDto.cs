@@ -1,13 +1,9 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
 
-namespace GearShop.Models
+namespace GearShop.Dtos
 {
-    [Index(nameof(Email), IsUnique = true)]
-    public class User
+    public class CreateUserDto
     {
-        public int Id { get; set; }
-
         [Required, MaxLength(120)]
         public string Name { get; set; } = string.Empty;
 
