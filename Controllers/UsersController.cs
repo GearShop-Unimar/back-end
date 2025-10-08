@@ -1,10 +1,13 @@
-        using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using GearShop.Models;
 using GearShop.Dtos;
 using GearShop.Repositories;
 using GearShop.Repositories.Factories;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using BCrypt.Net; 
 
 namespace GearShop.Controllers
 {
@@ -40,18 +43,31 @@ namespace GearShop.Controllers
             var repo = _creator.CreateRepository();
             var email = dto.Email.Trim().ToLowerInvariant();
 
+            // 1. Verifica se o Email j� est� em uso
             if (await repo.EmailExistsAsync(email))
                 return Conflict(new { message = "Email already in use" });
 
+            // 2. **Hashing da Senha (Seguran�a Essencial)**
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+            // 3. Cria o objeto User mapeando DTOs
             var user = new User
             {
                 Name = dto.Name.Trim(),
                 Email = email,
-                phoneNumber = dto.phoneNumber.Trim(),
-                profilePicture = dto.profilePicture.Trim()
+                PasswordHash = passwordHash,
+                PhoneNumber = dto.PhoneNumber.Trim(),
+                ProfilePicture = dto.ProfilePicture.Trim(),
+                Cpf = dto.Cpf.Trim(),
+                Estado = dto.Estado.Trim(),
+                Cidade = dto.Cidade.Trim(),
+                Cep = dto.Cep.Trim(),
+                Rua = dto.Rua.Trim(),
+                NumeroCasa = dto.NumeroCasa.Trim()
             };
 
             var created = await repo.CreateAsync(user);
+
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
@@ -70,8 +86,14 @@ namespace GearShop.Controllers
                 Id = id,
                 Name = dto.Name.Trim(),
                 Email = email,
-                phoneNumber = dto.phoneNumber.Trim(),
-                profilePicture = dto.profilePicture.Trim()
+                PhoneNumber = dto.PhoneNumber.Trim(),
+                ProfilePicture = dto.ProfilePicture.Trim(),
+                Cpf = dto.Cpf.Trim(),
+                Estado = dto.Estado.Trim(),
+                Cidade = dto.Cidade.Trim(),
+                Cep = dto.Cep.Trim(),
+                Rua = dto.Rua.Trim(),
+                NumeroCasa = dto.NumeroCasa.Trim()
             });
 
             if (updated is null) return NotFound(new { message = "User not found" });

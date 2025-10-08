@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using GearShop.Data;
 using GearShop.Repositories.Factories;
+using GearShop.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +30,9 @@ else
     builder.Services.AddSingleton<UserRepositoryCreator, InMemoryUserRepositoryCreator>();
 
 var app = builder.Build();
+
+// Middleware de tratamento global de exceções
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "GearShop API v1"));

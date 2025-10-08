@@ -1,23 +1,18 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
 using GearShop.Validators;
 
-namespace GearShop.Models
+namespace GearShop.Dtos
 {
-    [Index(nameof(Email), IsUnique = true)]
-    [Index(nameof(Cpf), IsUnique = true)]
-    public class User
+    public class CreateUserDto
     {
-        public int Id { get; set; }
-
         [Required, MaxLength(120)]
         public string Name { get; set; } = string.Empty;
 
         [Required, EmailAddress, MaxLength(160)]
         public string Email { get; set; } = string.Empty;
 
-        [Required, MaxLength(255)]
-        public string PasswordHash { get; set; } = string.Empty;
+        [Required, MinLength(6)]
+        public string Password { get; set; } = string.Empty;
 
         [Required, Phone, MaxLength(30)]
         public string PhoneNumber { get; set; } = string.Empty;
@@ -25,7 +20,6 @@ namespace GearShop.Models
         [Required, Url, MaxLength(500)]
         public string ProfilePicture { get; set; } = string.Empty;
 
-        // Campos de endereço e identificação
         [Required, CpfValidation]
         [MaxLength(11)]
         public string Cpf { get; set; } = string.Empty;

@@ -23,7 +23,18 @@ namespace GearShop.Repositories
         {
             var u = await _db.Users.FindAsync(id);
             if (u is null) return null;
-            u.Name = data.Name; u.Email = data.Email; u.phoneNumber = data.phoneNumber; u.profilePicture = data.profilePicture;
+            
+            u.Name = data.Name;
+            u.Email = data.Email;
+            u.PhoneNumber = data.PhoneNumber;
+            u.ProfilePicture = data.ProfilePicture;
+            u.Cpf = data.Cpf;
+            u.Estado = data.Estado;
+            u.Cidade = data.Cidade;
+            u.Cep = data.Cep;
+            u.Rua = data.Rua;
+            u.NumeroCasa = data.NumeroCasa;
+            
             await _db.SaveChangesAsync();
             return u;
         }
