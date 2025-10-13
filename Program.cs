@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using GearShop.Data;
-using GearShop.Repositories.Factories;
+using GearShop.Repositories;
 using GearShop.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,15 +23,11 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
-var persistence = builder.Configuration["Persistence"]?.ToLowerInvariant();
-if (persistence == "ef")
-    builder.Services.AddScoped<UserRepositoryCreator, EfUserRepositoryCreator>();
-else
-    builder.Services.AddSingleton<UserRepositoryCreator, InMemoryUserRepositoryCreator>();
+builder.Services.AddScoped<IUserRepository, EfUserRepository>();
+builder.Services.AddScoped<IProductRepository, EfProductRepository>();
 
 var app = builder.Build();
 
-// Middleware de tratamento global de exceções
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseSwagger();
@@ -39,12 +35,5 @@ app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "GearShop AP
 
 app.UseHttpsRedirection();
 app.MapControllers();
-
-if (persistence == "ef")
-{
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
 
 app.Run();
