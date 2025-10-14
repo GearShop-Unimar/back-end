@@ -45,5 +45,13 @@ namespace GearShop.Models
 
         [Required, MaxLength(20)]
         public string NumeroCasa { get; set; } = string.Empty;
+
+        public UserRole Role { get; set; }
+    }
+
+    public enum UserRole
+    {
+        Seller,
+        Admin
     }
 }

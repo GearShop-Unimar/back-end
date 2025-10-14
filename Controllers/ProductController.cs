@@ -1,95 +1,67 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using GearShop.Models;
-using GearShop.Dtos;
-using GearShop.Repositories;
 using GearShop.Dtos.Product;
+using GearShop.Models;
 
 namespace GearShop.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Produces("application/json")]
-    public class ProductsController : ControllerBase
+    public class ProductController : ControllerBase
     {
-        private readonly IProductRepository _repository;
+        private readonly IProductService _productService;
 
-        public ProductsController(IProductRepository repository)
+        public ProductController(IProductService productService)
         {
-            _repository = repository;
+            _productService = productService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetAll()
+        public IActionResult GetAll()
         {
-            var products = await _repository.GetAllAsync();
+            var products = _productService.GetAll();
             return Ok(products);
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<Product>> GetById(int id)
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id)
         {
-            var product = await _repository.GetByIdAsync(id);
-
-            if (product is null)
-            {
-                return NotFound(new { message = $"Product with ID {id} not found" });
-            }
-
+            var product = _productService.GetById(id);
+            if (product == null)
+                return NotFound();
             return Ok(product);
         }
 
         [HttpPost]
-        [Consumes("application/json")]
-        public async Task<ActionResult<Product>> Create([FromBody] CreateProductDto dto)
+        public IActionResult Create([FromBody] CreateProductDto dto)
         {
-            var product = new Product
-            {
-                Name = dto.Name.Trim(),
-                Description = dto.Description.Trim(),
-                Price = dto.Price,
-                StockQuantity = dto.StockQuantity
-            };
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            var createdProduct = await _repository.CreateAsync(product);
-
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = createdProduct.Id },
-                createdProduct
-            );
+            var product = _productService.Create(dto);
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
         }
 
-        [HttpPut("{id:int}")]
-        [Consumes("application/json")]
-        public async Task<ActionResult<Product>> Update(int id, [FromBody] UpdateProductDto dto)
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, [FromBody] UpdateProductDto dto)
         {
-            var productToUpdate = new Product
-            {
-                Id = id,
-                Name = dto.Name.Trim(),
-                Description = dto.Description.Trim(),
-                Price = dto.Price,
-                StockQuantity = dto.StockQuantity
-            };
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            var updatedProduct = await _repository.UpdateAsync(id, productToUpdate);
+            var updated = _productService.Update(id, dto);
+            if (updated == null)
+                return NotFound();
 
-            if (updatedProduct is null)
-            {
-                return NotFound(new { message = $"Product with ID {id} not found" });
-            }
-
-            return Ok(updatedProduct);
+            return Ok(updated);
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
         {
-            var ok = await _repository.DeleteAsync(id);
+            var deleted = _productService.Delete(id);
+            if (!deleted)
+                return NotFound();
 
-            return ok ? NoContent() : NotFound(new { message = $"Product with ID {id} not found" });
+            return NoContent();
         }
     }
 }

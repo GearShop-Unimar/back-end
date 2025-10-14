@@ -20,5 +20,13 @@ namespace GearShop.Dtos.Product
 
         [Url, MaxLength(500)]
         public string MainImageUrl { get; set; } = string.Empty;
+
+        // Categoria do produto
+        [Required, MaxLength(100)]
+        public string Category { get; set; } = string.Empty;
+
+        // Id do usuário vendedor
+        [Required]
+        public int SellerId { get; set; }
     }
 }
