@@ -3,6 +3,7 @@ using System;
 using GearShop.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GearShop.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251014173444_AddPaymentSystem")]
+    partial class AddPaymentSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
@@ -111,7 +114,7 @@ namespace GearShop.Migrations
                         .HasMaxLength(4)
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("OrderId")
+                    b.Property<int>("OrderId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("PaymentType")
@@ -131,16 +134,11 @@ namespace GearShop.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("SubscriptionId")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ExternalPaymentId")
                         .IsUnique()
                         .HasFilter("[ExternalPaymentId] IS NOT NULL");
-
-                    b.HasIndex("SubscriptionId");
 
                     b.HasIndex("OrderId", "PaymentType");
 
@@ -334,16 +332,16 @@ namespace GearShop.Migrations
                     b.HasOne("GearShop.Models.Order", "Order")
                         .WithMany("Payments")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasOne("GearShop.Models.Subscription", "Subscription")
+                    b.HasOne("GearShop.Models.Subscription", null)
                         .WithMany("Payments")
-                        .HasForeignKey("SubscriptionId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Order");
-
-                    b.Navigation("Subscription");
                 });
 
             modelBuilder.Entity("GearShop.Models.Subscription", b =>

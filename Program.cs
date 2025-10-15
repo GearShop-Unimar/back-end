@@ -86,6 +86,9 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IProductRepository, EfProductRepository>();
+builder.Services.AddScoped<IOrderRepository, EfOrderRepository>();
+builder.Services.AddScoped<IPaymentRepository, EfPaymentRepository>();
+builder.Services.AddScoped<ISubscriptionRepository, EfSubscriptionRepository>();
 
 // 🟢 REGISTRO DO NOVO SERVIÇO DE AUTENTICAÇÃO
 builder.Services.AddScoped<IAuthService, AuthService>();
