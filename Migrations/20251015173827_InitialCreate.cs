@@ -6,11 +6,35 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace GearShop.Migrations
 {
     /// <inheritdoc />
-    public partial class AddPaymentSystem : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 120, nullable: false),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 160, nullable: false),
+                    PasswordHash = table.Column<string>(type: "TEXT", maxLength: 60, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "TEXT", maxLength: 30, nullable: false),
+                    ProfilePicture = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
+                    Cpf = table.Column<string>(type: "TEXT", maxLength: 11, nullable: false),
+                    Estado = table.Column<string>(type: "TEXT", maxLength: 2, nullable: false),
+                    Cidade = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Cep = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
+                    Rua = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    NumeroCasa = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    Role = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Orders",
                 columns: table => new
@@ -31,6 +55,60 @@ namespace GearShop.Migrations
                         name: "FK_Orders_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Products",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: false),
+                    Price = table.Column<decimal>(type: "TEXT", nullable: false),
+                    StockQuantity = table.Column<int>(type: "INTEGER", nullable: false),
+                    MainImageUrl = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
+                    Category = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    SellerId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Products_Users_SellerId",
+                        column: x => x.SellerId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OrderItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    OrderId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ProductId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Quantity = table.Column<int>(type: "INTEGER", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "decimal(10,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrderItems_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OrderItems_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -70,41 +148,13 @@ namespace GearShop.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "OrderItems",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    OrderId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ProductId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Quantity = table.Column<int>(type: "INTEGER", nullable: false),
-                    UnitPrice = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    TotalPrice = table.Column<decimal>(type: "decimal(10,2)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OrderItems", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_OrderItems_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_OrderItems_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Payments",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    OrderId = table.Column<int>(type: "INTEGER", nullable: false),
+                    OrderId = table.Column<int>(type: "INTEGER", nullable: true),
+                    SubscriptionId = table.Column<int>(type: "INTEGER", nullable: true),
                     PaymentType = table.Column<int>(type: "INTEGER", nullable: false),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
@@ -128,8 +178,8 @@ namespace GearShop.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Payments_Subscriptions_OrderId",
-                        column: x => x.OrderId,
+                        name: "FK_Payments_Subscriptions_SubscriptionId",
+                        column: x => x.SubscriptionId,
                         principalTable: "Subscriptions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -163,6 +213,16 @@ namespace GearShop.Migrations
                 columns: new[] { "OrderId", "PaymentType" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Payments_SubscriptionId",
+                table: "Payments",
+                column: "SubscriptionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_SellerId",
+                table: "Products",
+                column: "SellerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Subscriptions_NextPaymentDate",
                 table: "Subscriptions",
                 column: "NextPaymentDate");
@@ -176,6 +236,18 @@ namespace GearShop.Migrations
                 name: "IX_Subscriptions_UserId_ProductId",
                 table: "Subscriptions",
                 columns: new[] { "UserId", "ProductId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Cpf",
+                table: "Users",
+                column: "Cpf",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Email",
+                table: "Users",
+                column: "Email",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -192,6 +264,12 @@ namespace GearShop.Migrations
 
             migrationBuilder.DropTable(
                 name: "Subscriptions");
+
+            migrationBuilder.DropTable(
+                name: "Products");
+
+            migrationBuilder.DropTable(
+                name: "Users");
         }
     }
 }

@@ -153,6 +153,11 @@ namespace GearShop.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -171,10 +176,15 @@ namespace GearShop.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("SellerId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("StockQuantity")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SellerId");
 
                     b.ToTable("Products");
                 });
@@ -270,7 +280,7 @@ namespace GearShop.Migrations
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasMaxLength(255)
+                        .HasMaxLength(60)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PhoneNumber")
@@ -282,6 +292,9 @@ namespace GearShop.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Rua")
                         .IsRequired()
@@ -346,6 +359,17 @@ namespace GearShop.Migrations
                     b.Navigation("Subscription");
                 });
 
+            modelBuilder.Entity("GearShop.Models.Product", b =>
+                {
+                    b.HasOne("GearShop.Models.User", "Seller")
+                        .WithMany("Products")
+                        .HasForeignKey("SellerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Seller");
+                });
+
             modelBuilder.Entity("GearShop.Models.Subscription", b =>
                 {
                     b.HasOne("GearShop.Models.Product", "Product")
@@ -375,6 +399,11 @@ namespace GearShop.Migrations
             modelBuilder.Entity("GearShop.Models.Subscription", b =>
                 {
                     b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("GearShop.Models.User", b =>
+                {
+                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

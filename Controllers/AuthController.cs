@@ -1,7 +1,10 @@
+
 using GearShop.Dtos;
+using GearShop.Dtos.Auth; // 
 using GearShop.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -17,7 +20,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginDto loginData)
+    public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginDto loginData)
     {
         try
         {
@@ -28,7 +31,7 @@ public class AuthController : ControllerBase
                 return Unauthorized(new { message = "Email ou senha inválidos." });
             }
 
-            return Ok(new { token = token });
+            return Ok(new LoginResponseDto { Token = token });
         }
         catch (Exception ex)
         {

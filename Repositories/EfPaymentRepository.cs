@@ -18,9 +18,9 @@ namespace GearShop.Repositories
         {
             return await _context.Payments
                 .Include(p => p.Order)
-                    .ThenInclude(o => o.User)
+                    .ThenInclude(o => o!.User)
                 .Include(p => p.Subscription)
-                    .ThenInclude(s => s.User)
+                    .ThenInclude(s => s!.User)
                 .ToListAsync();
         }
 
@@ -28,9 +28,9 @@ namespace GearShop.Repositories
         {
             return await _context.Payments
                 .Include(p => p.Order)
-                    .ThenInclude(o => o.User)
+                    .ThenInclude(o => o!.User)
                 .Include(p => p.Subscription)
-                    .ThenInclude(s => s.User)
+                    .ThenInclude(s => s!.User)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
@@ -38,9 +38,9 @@ namespace GearShop.Repositories
         {
             return await _context.Payments
                 .Include(p => p.Order)
-                    .ThenInclude(o => o.User)
+                    .ThenInclude(o => o!.User)
                 .Include(p => p.Subscription)
-                    .ThenInclude(s => s.User)
+                    .ThenInclude(s => s!.User)
                 .Where(p => p.OrderId == orderId)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
@@ -50,11 +50,11 @@ namespace GearShop.Repositories
         {
             return await _context.Payments
                 .Include(p => p.Order)
-                    .ThenInclude(o => o.User)
+                    .ThenInclude(o => o!.User)
                 .Include(p => p.Subscription)
-                    .ThenInclude(s => s.User)
-                .Where(p => (p.Order != null && p.Order.UserId == userId) || 
-                           (p.Subscription != null && p.Subscription.UserId == userId))
+                    .ThenInclude(s => s!.User)
+                .Where(p => (p.Order != null && p.Order.UserId == userId) ||
+                            (p.Subscription != null && p.Subscription.UserId == userId))
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
         }
@@ -80,7 +80,7 @@ namespace GearShop.Repositories
             existingPayment.FailureReason = payment.FailureReason;
             existingPayment.LastFourDigits = payment.LastFourDigits;
             existingPayment.CardBrand = payment.CardBrand;
-            
+
             if (payment.Status == PaymentStatus.Approved || payment.Status == PaymentStatus.Rejected)
             {
                 existingPayment.ProcessedAt = DateTime.UtcNow;

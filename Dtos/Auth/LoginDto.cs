@@ -1,4 +1,3 @@
-// Dtos/LoginDto.cs
 using System.ComponentModel.DataAnnotations;
 
 namespace GearShop.Dtos
