@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using GearShop.Dtos.Product;
 using GearShop.Models;
+using GearShop.Services; // Assumindo que IProductService está aqui
 
 namespace GearShop.Controllers
 {
@@ -15,50 +16,53 @@ namespace GearShop.Controllers
             _productService = productService;
         }
 
+        // --- MÉTODOS ASSÍNCRONOS ---
+
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAllAsync()
         {
-            var products = _productService.GetAll();
+            var products = await _productService.GetAllAsync();
             return Ok(products);
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public async Task<IActionResult> GetByIdAsync(int id)
         {
-            var product = _productService.GetById(id);
+            var product = await _productService.GetByIdAsync(id);
             if (product == null)
                 return NotFound();
             return Ok(product);
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] CreateProductDto dto)
+        public async Task<IActionResult> CreateAsync([FromBody] CreateProductDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var product = _productService.Create(dto);
-            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+            var product = await _productService.CreateAsync(dto);
+            // Usamos o nome do método GetByIdAsync para gerar a URL de resposta
+            return CreatedAtAction(nameof(GetByIdAsync), new { id = product.Id }, product);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody] UpdateProductDto dto)
+        public async Task<IActionResult> UpdateAsync(int id, [FromBody] UpdateProductDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var updated = _productService.Update(id, dto);
-            if (updated == null)
+            var updatedProduct = await _productService.UpdateAsync(id, dto);
+            if (updatedProduct == null)
                 return NotFound();
 
-            return Ok(updated);
+            return Ok(updatedProduct);
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> DeleteAsync(int id)
         {
-            var deleted = _productService.Delete(id);
-            if (!deleted)
+            var success = await _productService.DeleteAsync(id);
+            if (!success)
                 return NotFound();
 
             return NoContent();

@@ -4,24 +4,45 @@ using Microsoft.OpenApi.Models;
 using GearShop.Data;
 using GearShop.Repositories;
 using GearShop.Middleware;
-using System.Text.Json.Serialization; // Necess�rio para JsonIgnoreCondition
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using GearShop.Services;
+using GearShop.Services.User;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// =====================================================================
-// 1. ADICIONAR O SERVI�O CORS
-// Define a pol�tica que permite a origem do seu frontend (Vite)
-// =====================================================================
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicyFrontend",
         builder => builder
-            // Permite APENAS a origem do seu frontend (http://localhost:5173)
             .WithOrigins("http://localhost:5173")
-            // Permite todos os m�todos HTTP (GET, POST, PUT, DELETE)
             .AllowAnyMethod()
-            // Permite todos os cabe�alhos HTTP
             .AllowAnyHeader());
+});
+
+// =====================================================================
+// 🟢 CONFIGURAÇÃO JWT
+// =====================================================================
+var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!); // A chave deve vir de appsettings
+
+builder.Services.AddAuthentication(x =>
+{
+    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(x =>
+{
+    x.RequireHttpsMetadata = false;
+    x.SaveToken = true;
+    x.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false, // Em desenvolvimento, podemos desabilitar
+        ValidateAudience = false // Em desenvolvimento, podemos desabilitar
+    };
 });
 // =====================================================================
 
@@ -37,6 +58,27 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "GearShop API", Version = "v1" });
+
+    // 🟢 Adiciona a opção de Token JWT no Swagger UI
+    var securityScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Insira o token JWT no formato: Bearer SEU_TOKEN",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Reference = new OpenApiReference
+        {
+            Type = ReferenceType.SecurityScheme,
+            Id = "Bearer"
+        }
+    };
+    c.AddSecurityDefinition("Bearer", securityScheme);
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { securityScheme, new[] { "Bearer" } }
+    });
 });
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
@@ -45,6 +87,10 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IProductRepository, EfProductRepository>();
 
+// 🟢 REGISTRO DO NOVO SERVIÇO DE AUTENTICAÇÃO
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
@@ -52,16 +98,15 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "GearShop API v1"));
 
-
-// =====================================================================
-// 2. HABILITAR O MIDDLEWARE CORS
-// Deve ser chamado antes de app.MapControllers()
-// =====================================================================
 app.UseCors("CorsPolicyFrontend");
-// =====================================================================
-
 
 app.UseHttpsRedirection();
+
+// 🟢 HABILITAR MIDDLEWARE DE AUTENTICAÇÃO E AUTORIZAÇÃO
+app.UseAuthentication();
+app.UseAuthorization();
+// =====================================================================
+
 app.MapControllers();
 
 app.Run();

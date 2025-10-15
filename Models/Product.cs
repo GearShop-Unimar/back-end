@@ -28,6 +28,7 @@ namespace GearShop.Models
         public string Category { get; set; } = string.Empty;
 
         public int SellerId { get; set; }
-        public User Seller { get; set; }
+
+        public User Seller { get; set; } = null!;
     }
 }
