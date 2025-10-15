@@ -23,5 +23,12 @@ namespace GearShop.Models
 
         [Url, MaxLength(500)]
         public string MainImageUrl { get; set; } = string.Empty;
+
+        [Required, MaxLength(100)]
+        public string Category { get; set; } = string.Empty;
+
+        public int SellerId { get; set; }
+
+        public User Seller { get; set; } = null!;
     }
 }

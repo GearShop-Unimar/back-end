@@ -5,8 +5,16 @@ namespace GearShop.Dtos.Product
 {
     // Ele herda todos os campos, como Name, Price, StockQuantity, etc., 
     // do CreateProductDto.
-    public class UpdateProductDto : CreateProductDto
+    public class UpdateProductDto
     {
-        // Esta classe fica vazia, pois herda tudo o que precisa.
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public int StockQuantity { get; set; }
+        public string MainImageUrl { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+
+        // Adicione SellerId
+        public int SellerId { get; set; }
     }
 }

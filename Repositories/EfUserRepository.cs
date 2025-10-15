@@ -10,7 +10,12 @@ namespace GearShop.Repositories
         public EfUserRepository(AppDbContext db) => _db = db;
 
         public Task<List<User>> GetAllAsync() => _db.Users.AsNoTracking().ToListAsync();
+
         public Task<User?> GetByIdAsync(int id) => _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
+
+        // MÉTODO FALTANTE ADICIONADO AQUI 👇
+        public Task<User?> GetByEmailAsync(string email) =>
+            _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
 
         public async Task<User> CreateAsync(User user)
         {
@@ -23,7 +28,7 @@ namespace GearShop.Repositories
         {
             var u = await _db.Users.FindAsync(id);
             if (u is null) return null;
-            
+
             u.Name = data.Name;
             u.Email = data.Email;
             u.PhoneNumber = data.PhoneNumber;
@@ -34,7 +39,7 @@ namespace GearShop.Repositories
             u.Cep = data.Cep;
             u.Rua = data.Rua;
             u.NumeroCasa = data.NumeroCasa;
-            
+
             await _db.SaveChangesAsync();
             return u;
         }
