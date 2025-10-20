@@ -13,7 +13,6 @@ using GearShop.Services.User;
 using GearShop.Services.Auth;
 using GearShop.Services.Product;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
@@ -78,8 +77,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// ===== MUDANÇAS AQUI =====
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseSqlite(builder.Configuration.GetConnectionString("Default")));
+    opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+// ==========================
 
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IProductRepository, EfProductRepository>();
