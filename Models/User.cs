@@ -58,7 +58,7 @@ namespace GearShop.Models
     // O nome foi simplificado e a opção 'Client' foi adicionada
     public enum Role
     {
-        Client, // Adicionado para o usuário padrão
+        Client, 
         Seller,
         Admin
     }

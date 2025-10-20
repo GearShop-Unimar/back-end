@@ -1,11 +1,10 @@
-// Services/IAuthService.cs
-using GearShop.Dtos;
+using GearShop.Dtos.Auth;
+using System.Threading.Tasks;
 
-namespace GearShop.Services
+namespace GearShop.Services.Auth
 {
     public interface IAuthService
     {
-        // Retorna o token JWT se o login for bem-sucedido
-        Task<string> Authenticate(LoginDto loginData);
+        Task<LoginResponseDto?> Authenticate(LoginDto loginData);
     }
 }

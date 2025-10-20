@@ -1,17 +1,15 @@
-// Arquivo: Services/Auth/AuthService.cs
+using GearShop.Dtos.Auth;
+using GearShop.Dtos.User;
+using GearShop.Repositories;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using GearShop.Dtos;
-using GearShop.Models; // Usamos o namespace diretamente
-using GearShop.Repositories;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using BCrypt.Net;
 
-namespace GearShop.Services
+namespace GearShop.Services.Auth
 {
     public class AuthService : IAuthService
     {
@@ -24,31 +22,40 @@ namespace GearShop.Services
             _configuration = configuration;
         }
 
-        public async Task<string> Authenticate(LoginDto loginData)
+        public async Task<LoginResponseDto?> Authenticate(LoginDto loginData)
         {
             var user = await _userRepository.GetByEmailAsync(loginData.Email);
 
-            if (user == null)
+            if (user == null || !BCrypt.Net.BCrypt.Verify(loginData.Password, user.PasswordHash))
             {
-                return string.Empty; // Usuário não encontrado
+                return null;
             }
 
-            // Verificação correta da senha com BCrypt
-            if (!BCrypt.Net.BCrypt.Verify(loginData.Password, user.PasswordHash))
-            {
-                return string.Empty; // Senha inválida
-            }
+            var tokenString = GenerateJwtToken(user);
 
-            // Se as credenciais estiverem corretas, gerar o Token JWT
-            return GenerateJwtToken(user);
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                ProfilePicture = user.ProfilePicture,
+                Cidade = user.Cidade,
+                Estado = user.Estado,
+                Role = user.Role.ToString()
+            };
+
+            return new LoginResponseDto
+            {
+                Token = tokenString,
+                User = userDto
+            };
         }
 
-        // A assinatura do método agora usa o nome completo da classe User
         private string GenerateJwtToken(GearShop.Models.User user)
         {
             var claims = new[]
             {
-                // Todos os 'new Claim' agora funcionam porque os 'usings' estão corretos
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.Name, user.Name),
@@ -61,7 +68,6 @@ namespace GearShop.Services
             );
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
             var token = new JwtSecurityToken(
                 claims: claims,
                 expires: DateTime.Now.AddHours(8),
