@@ -10,6 +10,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using GearShop.Services;
 using GearShop.Services.User;
+using GearShop.Services.Auth;
+using GearShop.Services.Product;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,10 +25,7 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader());
 });
 
-// =====================================================================
-// 🟢 CONFIGURAÇÃO JWT
-// =====================================================================
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!); // A chave deve vir de appsettings
+var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!);
 
 builder.Services.AddAuthentication(x =>
 {
@@ -40,12 +40,10 @@ builder.Services.AddAuthentication(x =>
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false, // Em desenvolvimento, podemos desabilitar
-        ValidateAudience = false // Em desenvolvimento, podemos desabilitar
+        ValidateIssuer = false,
+        ValidateAudience = false
     };
 });
-// =====================================================================
-
 
 builder.Services.AddControllers()
     .AddJsonOptions(o =>
@@ -59,7 +57,6 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "GearShop API", Version = "v1" });
 
-    // 🟢 Adiciona a opção de Token JWT no Swagger UI
     var securityScheme = new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -90,9 +87,9 @@ builder.Services.AddScoped<IOrderRepository, EfOrderRepository>();
 builder.Services.AddScoped<IPaymentRepository, EfPaymentRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, EfSubscriptionRepository>();
 
-// 🟢 REGISTRO DO NOVO SERVIÇO DE AUTENTICAÇÃO
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 var app = builder.Build();
 
@@ -105,10 +102,8 @@ app.UseCors("CorsPolicyFrontend");
 
 app.UseHttpsRedirection();
 
-// 🟢 HABILITAR MIDDLEWARE DE AUTENTICAÇÃO E AUTORIZAÇÃO
 app.UseAuthentication();
 app.UseAuthorization();
-// =====================================================================
 
 app.MapControllers();
 

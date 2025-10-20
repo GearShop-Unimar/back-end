@@ -1,9 +1,8 @@
-
-using GearShop.Dtos;
-using GearShop.Dtos.Auth; // 
-using GearShop.Services;
+using GearShop.Dtos.Auth;
+using GearShop.Services.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 
 [ApiController]
@@ -24,14 +23,14 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var token = await _authService.Authenticate(loginData);
+            var loginResponse = await _authService.Authenticate(loginData);
 
-            if (string.IsNullOrEmpty(token))
+            if (loginResponse == null)
             {
                 return Unauthorized(new { message = "Email ou senha inválidos." });
             }
 
-            return Ok(new LoginResponseDto { Token = token });
+            return Ok(loginResponse);
         }
         catch (Exception ex)
         {

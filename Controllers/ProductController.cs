@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using GearShop.Dtos.Product;
 using GearShop.Models;
-using GearShop.Services; // Assumindo que IProductService está aqui
+using GearShop.Services;
 
 namespace GearShop.Controllers
 {
@@ -16,16 +16,14 @@ namespace GearShop.Controllers
             _productService = productService;
         }
 
-        // --- MÉTODOS ASSÍNCRONOS ---
-
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            var products = await _productService.GetAllAsync();
-            return Ok(products);
+            var product = await _productService.GetAllAsync();
+            return Ok(product);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetProductById")]
         public async Task<IActionResult> GetByIdAsync(int id)
         {
             var product = await _productService.GetByIdAsync(id);
@@ -41,7 +39,6 @@ namespace GearShop.Controllers
                 return BadRequest(ModelState);
 
             var product = await _productService.CreateAsync(dto);
-            // Usamos o nome do método GetByIdAsync para gerar a URL de resposta
             return CreatedAtAction(nameof(GetByIdAsync), new { id = product.Id }, product);
         }
 

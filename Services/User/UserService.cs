@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-// SOLUÇÃO PARA O ERRO CS0118: Criamos um apelido 'UserModel' para a classe User
 using UserModel = GearShop.Models.User;
 using GearShop.Models; // Para a enum Role
 
