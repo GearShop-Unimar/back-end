@@ -18,6 +18,7 @@ using GearShop.Services.User;
 using GearShop.Services.Auth;
 using GearShop.Services.Product;
 
+using GearShop.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -96,6 +97,8 @@ builder.Services.AddScoped<ISubscriptionRepository, EfSubscriptionRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.Configure<JwtOptions>(
+    builder.Configuration.GetSection(JwtOptions.Jwt));
 
 var app = builder.Build();
 
