@@ -1,12 +1,14 @@
-public class ProductDto
+namespace GearShop.Dtos.Product
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public int StockQuantity { get; set; }
-    public string MainImageUrl { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-
-    public int SellerId { get; set; }
+    public class ProductDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public int StockQuantity { get; set; }
+        public string MainImageUrl { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public int SellerId { get; set; }
+    }
 }
