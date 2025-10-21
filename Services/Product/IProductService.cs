@@ -1,6 +1,6 @@
 using GearShop.Dtos.Product;
-using System.Collections.Generic; // Necessário para IEnumerable
-using System.Threading.Tasks;    // MUITO IMPORTANTE: Necessário para usar Task
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GearShop.Services
 {
@@ -10,7 +10,8 @@ namespace GearShop.Services
 
         Task<ProductDto?> GetByIdAsync(int id);
 
-        Task<ProductDto> CreateAsync(CreateProductDto dto);
+        // CORRIGIDO: Agora aceita 3 argumentos
+        Task<ProductDto> CreateAsync(CreateProductDto dto, string imageUrl, int sellerId);
 
         Task<ProductDto?> UpdateAsync(int id, UpdateProductDto dto);
 

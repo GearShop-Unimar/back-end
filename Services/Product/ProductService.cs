@@ -1,5 +1,3 @@
-// Local: Services/Product/ProductService.cs
-
 using GearShop.Dtos.Product;
 using GearShop.Models;
 using GearShop.Repositories;
@@ -30,17 +28,18 @@ namespace GearShop.Services.Product
             return product == null ? null : ToProductDto(product);
         }
 
-        public async Task<ProductDto> CreateAsync(CreateProductDto dto)
+        // MÉTODO CREATEASYNC CORRIGIDO: Agora aceita imageUrl e sellerId
+        public async Task<ProductDto> CreateAsync(CreateProductDto dto, string imageUrl, int sellerId)
         {
             var product = new Models.Product
             {
                 Name = dto.Name,
                 Description = dto.Description,
                 Price = dto.Price,
-                StockQuantity = dto.StockQuantity, // CORRIGIDO
-                MainImageUrl = dto.MainImageUrl,
-                Category = dto.Category,       // CORRIGIDO
-                SellerId = dto.SellerId
+                StockQuantity = dto.StockQuantity,
+                MainImageUrl = imageUrl, // Usa a URL gerada pelo Controller
+                Category = dto.Category,
+                SellerId = sellerId // Usa o ID extraído do token do Controller
             };
 
             var createdProduct = await _productRepository.CreateAsync(product);
@@ -79,9 +78,9 @@ namespace GearShop.Services.Product
                 Name = product.Name,
                 Description = product.Description,
                 Price = product.Price,
-                StockQuantity = product.StockQuantity, // CORRIGIDO
+                StockQuantity = product.StockQuantity,
                 MainImageUrl = product.MainImageUrl,
-                Category = product.Category,       // CORRIGIDO
+                Category = product.Category,
                 SellerId = product.SellerId
             };
         }

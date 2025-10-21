@@ -1,13 +1,18 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using GearShop.Data;
-using GearShop.Repositories;
-using GearShop.Middleware;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+
+using GearShop.Data;
+using GearShop.Repositories;
+using GearShop.Middleware;
 using GearShop.Services;
 using GearShop.Services.User;
 using GearShop.Services.Auth;
@@ -78,8 +83,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseSqlite(builder.Configuration.GetConnectionString("Default")));
+    opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IProductRepository, EfProductRepository>();
@@ -99,6 +105,8 @@ app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "GearShop API v1"));
 
 app.UseCors("CorsPolicyFrontend");
+
+app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 
