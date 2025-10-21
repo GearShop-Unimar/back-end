@@ -5,37 +5,40 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
-[ApiController]
-[Route("api/[controller]")]
-public class AuthController : ControllerBase
+namespace GearShop.Controllers
 {
-    private readonly IAuthService _authService;
-    private readonly ILogger<AuthController> _logger;
-
-    public AuthController(IAuthService authService, ILogger<AuthController> logger)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController : ControllerBase
     {
-        _authService = authService;
-        _logger = logger;
-    }
+        private readonly IAuthService _authService;
+        private readonly ILogger<AuthController> _logger;
 
-    [HttpPost("login")]
-    public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginDto loginData)
-    {
-        try
+        public AuthController(IAuthService authService, ILogger<AuthController> logger)
         {
-            var loginResponse = await _authService.Authenticate(loginData);
-
-            if (loginResponse == null)
-            {
-                return Unauthorized(new { message = "Email ou senha inválidos." });
-            }
-
-            return Ok(loginResponse);
+            _authService = authService;
+            _logger = logger;
         }
-        catch (Exception ex)
+
+        [HttpPost("login")]
+        public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginDto loginData)
         {
-            _logger.LogError(ex, "Ocorreu um erro inesperado durante a autenticação para o usuário {Email}", loginData.Email);
-            return StatusCode(500, "Erro interno do servidor.");
+            try
+            {
+                var loginResponse = await _authService.Authenticate(loginData);
+
+                if (loginResponse == null)
+                {
+                    return Unauthorized(new { message = "Email ou senha inválidos." });
+                }
+
+                return Ok(loginResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ocorreu um erro inesperado durante a autenticação para o usuário {Email}", loginData.Email);
+                return StatusCode(500, "Erro interno do servidor.");
+            }
         }
     }
 }
