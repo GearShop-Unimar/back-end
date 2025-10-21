@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace GearShop.Dtos.Product
@@ -18,14 +19,12 @@ namespace GearShop.Dtos.Product
         [Range(0, int.MaxValue)]
         public int StockQuantity { get; set; }
 
-        [Url, MaxLength(500)]
-        public string MainImageUrl { get; set; } = string.Empty;
+        [Required(ErrorMessage = "O arquivo de imagem é obrigatório.")]
+        public required IFormFile ImageFile { get; set; }
 
-        // Categoria do produto
         [Required, MaxLength(100)]
         public string Category { get; set; } = string.Empty;
 
-        // Id do usuário vendedor
         [Required]
         public int SellerId { get; set; }
     }

@@ -1,7 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using GearShop.Dtos.Product;
-using GearShop.Models;
 using GearShop.Services;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using System;
+using System.Security.Claims;
 
 namespace GearShop.Controllers
 {
@@ -10,10 +15,12 @@ namespace GearShop.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly IWebHostEnvironment _hostingEnvironment;
 
-        public ProductController(IProductService productService)
+        public ProductController(IProductService productService, IWebHostEnvironment hostingEnvironment)
         {
             _productService = productService;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         [HttpGet]
@@ -33,36 +40,44 @@ namespace GearShop.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateAsync([FromBody] CreateProductDto dto)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> CreateAsync([FromForm] CreateProductDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var product = await _productService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetByIdAsync), new { id = product.Id }, product);
-        }
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAsync(int id, [FromBody] UpdateProductDto dto)
-        {
-            if (!ModelState.IsValid)
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int sellerId))
+            {
+                return Unauthorized(new { Message = "ID do vendedor não encontrado no token." });
+            }
+
+            if (dto.ImageFile.Length > 5 * 1024 * 1024)
+            {
+                ModelState.AddModelError("ImageFile", "O arquivo de imagem deve ter no máximo 5MB.");
                 return BadRequest(ModelState);
+            }
 
-            var updatedProduct = await _productService.UpdateAsync(id, dto);
-            if (updatedProduct == null)
-                return NotFound();
+            string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.ImageFile.FileName);
+            string uploadsFolder = Path.Combine(_hostingEnvironment.WebRootPath, "images");
 
-            return Ok(updatedProduct);
-        }
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAsync(int id)
-        {
-            var success = await _productService.DeleteAsync(id);
-            if (!success)
-                return NotFound();
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await dto.ImageFile.CopyToAsync(fileStream);
+            }
 
-            return NoContent();
+            string imageUrl = $"/images/{uniqueFileName}";
+
+            var product = await _productService.CreateAsync(dto, imageUrl, sellerId);
+
+            return Created($"/api/Product/{product.Id}", product);
         }
     }
 }
