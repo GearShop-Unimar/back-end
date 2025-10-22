@@ -48,17 +48,15 @@ namespace GearShop.Models
         [Required, MaxLength(20)]
         public string NumeroCasa { get; set; } = string.Empty;
 
-        // A enum agora se chama Role
         public Role Role { get; set; }
 
-        // Propriedade de navegação para os produtos que este usuário vende
         public ICollection<Product> Products { get; set; } = new List<Product>();
     }
 
     // O nome foi simplificado e a opção 'Client' foi adicionada
     public enum Role
     {
-        Client, 
+        Client,
         Seller,
         Admin
     }

@@ -6,14 +6,16 @@ namespace GearShop.Data
     public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-        
+
         public DbSet<User> Users => Set<User>();
         public DbSet<Product> Products => Set<Product>();
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
         public DbSet<Payment> Payments => Set<Payment>();
         public DbSet<Subscription> Subscriptions => Set<Subscription>();
-
+        public DbSet<Post> Posts { get; set; }
+        public DbSet<Comment> Comments { get; set; }
+        public DbSet<PostLike> PostLikes { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
