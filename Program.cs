@@ -85,18 +85,27 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// --- ERRO AQUI ---
+// O teu código tem `AppDbContext` mas o meu `PostService` usa `ApplicationDbContext`
+// Vamos assumir que o nome correto é `AppDbContext` como está aqui.
+// Se o teu DbContext se chamar `ApplicationDbContext`, muda aqui.
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+// --- Repositórios ---
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IProductRepository, EfProductRepository>();
 builder.Services.AddScoped<IOrderRepository, EfOrderRepository>();
 builder.Services.AddScoped<IPaymentRepository, EfPaymentRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, EfSubscriptionRepository>();
 
+// --- Serviços ---
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IPostService, PostService>(); // <-- ADICIONE ESTA LINHA
+
 builder.Services.Configure<JwtOptions>(
     builder.Configuration.GetSection(JwtOptions.Jwt));
 
