@@ -10,10 +10,9 @@ namespace GearShop.Services
 
         Task<ProductDto?> GetByIdAsync(int id);
 
-        // CORRIGIDO: Agora aceita 3 argumentos
-        Task<ProductDto> CreateAsync(CreateProductDto dto, string imageUrl, int sellerId);
+        Task<ProductDto> CreateAsync(CreateProductDto dto, byte[]? imageData, string? imageMimeType, int sellerId);
 
-        Task<ProductDto?> UpdateAsync(int id, UpdateProductDto dto);
+        Task<ProductDto?> UpdateAsync(int id, UpdateProductDto dto, byte[]? imageData, string? imageMimeType);
 
         Task<bool> DeleteAsync(int id);
     }

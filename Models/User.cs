@@ -18,9 +18,8 @@ namespace GearShop.Models
         public string PasswordHash { get; set; } = string.Empty;
         [Required, Phone, MaxLength(30)]
         public string PhoneNumber { get; set; } = string.Empty;
-        // REMOVED: public string ProfilePicture { get; set; } = string.Empty;
-        public byte[]? ProfilePictureData { get; set; } // ADDED
-        public string? ProfilePictureMimeType { get; set; } // ADDED
+        public byte[]? ProfilePictureData { get; set; }
+        public string? ProfilePictureMimeType { get; set; }
         [Required, CpfValidation]
         [MaxLength(11)]
         public string Cpf { get; set; } = string.Empty;

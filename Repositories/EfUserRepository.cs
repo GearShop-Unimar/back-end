@@ -13,7 +13,6 @@ namespace GearShop.Repositories
 
         public Task<User?> GetByIdAsync(int id) => _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
 
-        // MÉTODO FALTANTE ADICIONADO AQUI 👇
         public Task<User?> GetByEmailAsync(string email) =>
             _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
 
@@ -32,13 +31,20 @@ namespace GearShop.Repositories
             u.Name = data.Name;
             u.Email = data.Email;
             u.PhoneNumber = data.PhoneNumber;
-            u.ProfilePicture = data.ProfilePicture;
+            // Removed: u.ProfilePicture = data.ProfilePicture;
+            // Update image data if provided in 'data' object
+            if (data.ProfilePictureData != null)
+            {
+                u.ProfilePictureData = data.ProfilePictureData;
+                u.ProfilePictureMimeType = data.ProfilePictureMimeType;
+            }
             u.Cpf = data.Cpf;
             u.Estado = data.Estado;
             u.Cidade = data.Cidade;
             u.Cep = data.Cep;
             u.Rua = data.Rua;
             u.NumeroCasa = data.NumeroCasa;
+            // Role and PasswordHash are typically not updated here
 
             await _db.SaveChangesAsync();
             return u;

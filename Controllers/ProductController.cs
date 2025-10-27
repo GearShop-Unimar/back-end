@@ -1,35 +1,48 @@
-using Microsoft.AspNetCore.Mvc;
 using GearShop.Dtos.Product;
-using GearShop.Services;
+using GearShop.Services.Product; // Correct using directive
+using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System.IO;
 using System;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using GearShop.Services; // Added for Authorize attribute
+
 
 namespace GearShop.Controllers
 {
+    [Authorize] // Added Authorize attribute, common for product creation
     [ApiController]
     [Route("api/[controller]")]
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
-        private readonly IWebHostEnvironment _hostingEnvironment;
 
-        public ProductController(IProductService productService, IWebHostEnvironment hostingEnvironment)
+        public ProductController(IProductService productService) // Updated constructor
         {
             _productService = productService;
-            _hostingEnvironment = hostingEnvironment;
         }
 
+        private int GetUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                throw new ApplicationException("ID do utilizador não encontrado no token.");
+            }
+            return userId;
+        }
+
+        [AllowAnonymous] // Assuming fetching products is public
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            var product = await _productService.GetAllAsync();
-            return Ok(product);
+            var products = await _productService.GetAllAsync();
+            return Ok(products);
         }
 
+        [AllowAnonymous] // Assuming fetching product by ID is public
         [HttpGet("{id}", Name = "GetProductById")]
         public async Task<IActionResult> GetByIdAsync(int id)
         {
@@ -46,38 +59,44 @@ namespace GearShop.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var sellerId = GetUserId();
 
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int sellerId))
+            byte[]? imageData = null;
+            string? imageMimeType = null;
+            if (dto.ImageFile != null && dto.ImageFile.Length > 0)
             {
-                return Unauthorized(new { Message = "ID do vendedor não encontrado no token." });
+                if (dto.ImageFile.Length > 5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("ImageFile", "O arquivo de imagem deve ter no máximo 5MB.");
+                    return BadRequest(ModelState);
+                }
+                using (var memoryStream = new MemoryStream())
+                {
+                    await dto.ImageFile.CopyToAsync(memoryStream);
+                    imageData = memoryStream.ToArray();
+                    imageMimeType = dto.ImageFile.ContentType;
+                }
             }
-
-            if (dto.ImageFile.Length > 5 * 1024 * 1024)
+            else
             {
-                ModelState.AddModelError("ImageFile", "O arquivo de imagem deve ter no máximo 5MB.");
+                ModelState.AddModelError("ImageFile", "O arquivo de imagem é obrigatório.");
                 return BadRequest(ModelState);
             }
 
-            string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.ImageFile.FileName);
-            string uploadsFolder = Path.Combine(_hostingEnvironment.WebRootPath, "images");
 
-            if (!Directory.Exists(uploadsFolder))
+            try
             {
-                Directory.CreateDirectory(uploadsFolder);
+                var product = await _productService.CreateAsync(dto, imageData, imageMimeType, sellerId);
+                return CreatedAtAction(nameof(GetByIdAsync), new { id = product.Id }, product);
             }
-            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            catch (Exception ex)
             {
-                await dto.ImageFile.CopyToAsync(fileStream);
+                Console.WriteLine($"Error creating product: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro ao criar o produto.");
             }
-
-            string imageUrl = $"/images/{uniqueFileName}";
-
-            var product = await _productService.CreateAsync(dto, imageUrl, sellerId);
-
-            return Created($"/api/Product/{product.Id}", product);
         }
+
+        // Add UpdateAsync and DeleteAsync methods here if needed,
+        // applying similar logic for image handling in UpdateAsync
     }
 }
