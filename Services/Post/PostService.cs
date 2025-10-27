@@ -5,6 +5,7 @@ using GearShop.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO; // Needed for MemoryStream
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -22,7 +23,7 @@ namespace GearShop.Services
         public async Task<IEnumerable<PostDto>> GetFeedAsync(int currentUserId)
         {
             var posts = await _context.Posts
-                .Include(p => p.Author)
+                .Include(p => p.Author) // Include Author for mapping
                 .Include(p => p.Likes)
                 .Include(p => p.Comments)
                     .ThenInclude(c => c.Author)
@@ -47,12 +48,36 @@ namespace GearShop.Services
             return MapPostToDto(post, currentUserId);
         }
 
-        public async Task<PostDto> CreatePostAsync(CreatePostDto dto, string? imageUrl, int authorId)
+        // --- CreatePostAsync MODIFIED ---
+        public async Task<PostDto> CreatePostAsync(CreatePostDto dto, int authorId)
         {
+            byte[]? imageData = null;
+            string? imageMimeType = null;
+
+            if (dto.ImageFile != null && dto.ImageFile.Length > 0)
+            {
+                // Read image into byte array
+                using (var memoryStream = new MemoryStream())
+                {
+                    await dto.ImageFile.CopyToAsync(memoryStream);
+                    if (memoryStream.Length < 5 * 1024 * 1024) // Check size (e.g., 5MB)
+                    {
+                        imageData = memoryStream.ToArray();
+                        imageMimeType = dto.ImageFile.ContentType; // Get MIME type
+                    }
+                    else
+                    {
+                        // Handle error: file too large
+                        throw new ArgumentException("Image file size exceeds the limit.");
+                    }
+                }
+            }
+
             var post = new Post
             {
                 Content = dto.Content,
-                ImageUrl = imageUrl,
+                ImageData = imageData, // Save bytes
+                ImageMimeType = imageMimeType, // Save MIME type
                 UserId = authorId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -64,6 +89,8 @@ namespace GearShop.Services
 
             return MapPostToDto(post, authorId);
         }
+        // --- End CreatePostAsync ---
+
 
         public async Task<ToggleLikeResultDto> ToggleLikeAsync(int postId, int userId)
         {
@@ -134,6 +161,9 @@ namespace GearShop.Services
                 return false;
             }
 
+            // Note: If using external blob storage, you'd delete the blob here.
+            // For DB blobs, Cascade Delete might handle this, or you might need manual cleanup if required.
+
             _context.Posts.Remove(post);
             await _context.SaveChangesAsync();
             return true;
@@ -145,12 +175,13 @@ namespace GearShop.Services
             {
                 Id = post.Id,
                 Content = post.Content,
-                ImageUrl = post.ImageUrl,
+                // REMOVED: ImageUrl = post.ImageUrl,
                 CreatedAt = post.CreatedAt,
                 Author = MapAuthorToDto(post.Author),
                 LikeCount = post.Likes.Count,
                 CommentCount = post.Comments.Count,
                 IsLikedByCurrentUser = post.Likes.Any(l => l.UserId == currentUserId),
+                // Note: RecentComments won't have images unless CommentDto is also changed
                 RecentComments = post.Comments
                     .OrderByDescending(c => c.CreatedAt)
                     .Take(2)
@@ -181,8 +212,20 @@ namespace GearShop.Services
             {
                 Id = author.Id,
                 Name = author.Name,
-                AvatarUrl = author.ProfilePicture
+                // REMOVED: AvatarUrl = author.ProfilePicture
+                // The frontend will get the avatar via /api/images/user/{author.Id}
             };
+        }
+
+        // --- INTERFACE NEEDS UPDATE ---
+        // Update IPostService to match the new CreatePostAsync signature
+        Task<PostDto> IPostService.CreatePostAsync(CreatePostDto dto, string? imageUrl, int authorId)
+        {
+            // This implementation matches the OLD signature, needs to call the NEW one
+            if (imageUrl != null)
+            {
+            }
+            return CreatePostAsync(dto, authorId); // Call the correct overload
         }
     }
 }

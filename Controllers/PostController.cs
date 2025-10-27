@@ -1,11 +1,11 @@
 using GearShop.Dtos.Post;
 using GearShop.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
+// REMOVED: using Microsoft.AspNetCore.Hosting; // No longer needed here
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.IO;
+using System.IO; // Keep for potential future use or remove if unused elsewhere
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -17,12 +17,12 @@ namespace GearShop.Controllers
     public class PostController : ControllerBase
     {
         private readonly IPostService _postService;
-        private readonly IWebHostEnvironment _hostingEnvironment;
+        // REMOVED: IWebHostEnvironment dependency
 
-        public PostController(IPostService postService, IWebHostEnvironment hostingEnvironment)
+        // Constructor updated to remove IWebHostEnvironment
+        public PostController(IPostService postService)
         {
             _postService = postService;
-            _hostingEnvironment = hostingEnvironment;
         }
 
         private int GetUserId()
@@ -52,38 +52,36 @@ namespace GearShop.Controllers
             return Ok(post);
         }
 
+        // --- CreatePost Action Updated ---
         [HttpPost]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreatePost([FromForm] CreatePostDto dto)
         {
-            var sellerId = GetUserId();
-            string? imageUrl = null;
+            var authorId = GetUserId(); // Renamed variable
 
-            if (dto.ImageFile != null && dto.ImageFile.Length > 0)
+            // REMOVED: All logic related to imageUrl, uniqueFileName, uploadsFolder, filePath, FileStream
+
+            try
             {
-                if (dto.ImageFile.Length > 5 * 1024 * 1024) // 5MB
-                {
-                    ModelState.AddModelError("ImageFile", "O arquivo de imagem deve ter no máximo 5MB.");
-                    return BadRequest(ModelState);
-                }
-
-                string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.ImageFile.FileName);
-                string uploadsFolder = Path.Combine(_hostingEnvironment.WebRootPath, "images", "posts");
-                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
-
-                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await dto.ImageFile.CopyToAsync(fileStream);
-                }
-                imageUrl = $"/images/posts/{uniqueFileName}";
+                // Call the service method that now expects only DTO and authorId
+                // The service (PostService) will handle reading the IFormFile from the DTO
+                var newPost = await _postService.CreatePostAsync(dto, authorId);
+                return CreatedAtAction(nameof(GetPostById), new { id = newPost.Id }, newPost);
             }
-
-            var newPost = await _postService.CreatePostAsync(dto, imageUrl, sellerId);
-
-            return CreatedAtAction(nameof(GetPostById), new { id = newPost.Id }, newPost);
+            catch (ArgumentException ex) // Catch specific errors like file size from the service
+            {
+                ModelState.AddModelError("ImageFile", ex.Message);
+                return BadRequest(ModelState);
+            }
+            catch (Exception ex) // General error handling
+            {
+                // Consider logging the exception ex
+                Console.WriteLine($"Error creating post: {ex.Message}"); // Simple console log
+                return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro ao criar o post.");
+            }
         }
+        // --- End CreatePost Update ---
+
 
         [HttpPost("{postId}/like")]
         public async Task<IActionResult> ToggleLike(int postId)
