@@ -39,7 +39,6 @@ namespace GearShop.Repositories
             existingProduct.Description = product.Description;
             existingProduct.Price = product.Price;
             existingProduct.StockQuantity = product.StockQuantity;
-            existingProduct.MainImageUrl = product.MainImageUrl;
 
             await _context.SaveChangesAsync();
             return existingProduct;

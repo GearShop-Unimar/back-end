@@ -1,18 +1,15 @@
-// Arquivo: Services/User/UserService.cs
-
-using GearShop.Dtos; // Namespace geral dos DTOs
-using GearShop.Dtos.User; // Namespace dos DTOs de User
+using GearShop.Dtos;
+using GearShop.Dtos.User;
 using GearShop.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UserModel = GearShop.Models.User;
-using GearShop.Models; // Para a enum Role
+using GearShop.Models;
 
 namespace GearShop.Services.User
 {
-    // A classe agora implementa a interface IUserService que definimos
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
@@ -21,8 +18,6 @@ namespace GearShop.Services.User
         {
             _userRepository = userRepository;
         }
-
-        // SOLUÇÃO PARA O ERRO CS0535: Implementação de todos os métodos
 
         public async Task<IEnumerable<UserDto>> GetAllAsync()
         {
@@ -51,7 +46,7 @@ namespace GearShop.Services.User
                 Email = dto.Email,
                 PasswordHash = passwordHash,
                 PhoneNumber = dto.PhoneNumber,
-                ProfilePicture = dto.ProfilePicture,
+                // ProfilePictureData and MimeType would be set separately if uploaded
                 Cpf = dto.Cpf,
                 Estado = dto.Estado,
                 Cidade = dto.Cidade,
@@ -67,26 +62,27 @@ namespace GearShop.Services.User
 
         public async Task<UserDto?> UpdateAsync(int id, UpdateUserDto dto)
         {
+            // Note: This method currently doesn't handle updating PasswordHash or ProfilePictureData
             if (await _userRepository.EmailExistsAsync(dto.Email, id))
             {
                 throw new Exception("Este endereço de email já está em uso.");
             }
 
-            var userToUpdate = new UserModel
-            {
-                Name = dto.Name,
-                Email = dto.Email,
-                PhoneNumber = dto.PhoneNumber,
-                ProfilePicture = dto.ProfilePicture,
-                Cpf = dto.Cpf,
-                Estado = dto.Estado,
-                Cidade = dto.Cidade,
-                Cep = dto.Cep,
-                Rua = dto.Rua,
-                NumeroCasa = dto.NumeroCasa
-            };
+            var existingUser = await _userRepository.GetByIdAsync(id);
+            if (existingUser is null) return null;
 
-            var updatedUser = await _userRepository.UpdateAsync(id, userToUpdate);
+            existingUser.Name = dto.Name;
+            existingUser.Email = dto.Email;
+            existingUser.PhoneNumber = dto.PhoneNumber;
+            // ProfilePictureData/MimeType update would need byte[] passed in
+            existingUser.Cpf = dto.Cpf;
+            existingUser.Estado = dto.Estado;
+            existingUser.Cidade = dto.Cidade;
+            existingUser.Cep = dto.Cep;
+            existingUser.Rua = dto.Rua;
+            existingUser.NumeroCasa = dto.NumeroCasa;
+
+            var updatedUser = await _userRepository.UpdateAsync(id, existingUser); // Assuming UpdateAsync takes the full user object
             return updatedUser is null ? null : ToUserDto(updatedUser);
         }
 
@@ -95,7 +91,6 @@ namespace GearShop.Services.User
             return await _userRepository.DeleteAsync(id);
         }
 
-        // Método privado para mapear o nosso Modelo para um DTO
         private UserDto ToUserDto(UserModel user)
         {
             return new UserDto
@@ -104,10 +99,9 @@ namespace GearShop.Services.User
                 Name = user.Name,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                ProfilePicture = user.ProfilePicture,
                 Cidade = user.Cidade,
                 Estado = user.Estado,
-                Role = user.Role.ToString() // Converte a enum para string (ex: "Client")
+                Role = user.Role.ToString()
             };
         }
     }

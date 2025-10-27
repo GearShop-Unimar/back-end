@@ -5,6 +5,7 @@ using GearShop.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -47,12 +48,33 @@ namespace GearShop.Services
             return MapPostToDto(post, currentUserId);
         }
 
-        public async Task<PostDto> CreatePostAsync(CreatePostDto dto, string? imageUrl, int authorId)
+        public async Task<PostDto> CreatePostAsync(CreatePostDto dto, int authorId)
         {
+            byte[]? imageData = null;
+            string? imageMimeType = null;
+
+            if (dto.ImageFile != null && dto.ImageFile.Length > 0)
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await dto.ImageFile.CopyToAsync(memoryStream);
+                    if (memoryStream.Length < 5 * 1024 * 1024)
+                    {
+                        imageData = memoryStream.ToArray();
+                        imageMimeType = dto.ImageFile.ContentType;
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Image file size exceeds the limit.");
+                    }
+                }
+            }
+
             var post = new Post
             {
                 Content = dto.Content,
-                ImageUrl = imageUrl,
+                ImageData = imageData,
+                ImageMimeType = imageMimeType,
                 UserId = authorId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -64,6 +86,7 @@ namespace GearShop.Services
 
             return MapPostToDto(post, authorId);
         }
+
 
         public async Task<ToggleLikeResultDto> ToggleLikeAsync(int postId, int userId)
         {
@@ -145,7 +168,6 @@ namespace GearShop.Services
             {
                 Id = post.Id,
                 Content = post.Content,
-                ImageUrl = post.ImageUrl,
                 CreatedAt = post.CreatedAt,
                 Author = MapAuthorToDto(post.Author),
                 LikeCount = post.Likes.Count,
@@ -181,7 +203,6 @@ namespace GearShop.Services
             {
                 Id = author.Id,
                 Name = author.Name,
-                AvatarUrl = author.ProfilePicture
             };
         }
     }

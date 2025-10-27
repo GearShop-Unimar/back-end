@@ -1,16 +1,13 @@
 using GearShop.Dtos.Auth;
 using GearShop.Dtos.User;
 using GearShop.Repositories;
-using Microsoft.Extensions.Configuration; // Ainda é necessário se outras classes o usarem, mas não mais para a JWT Key
-using Microsoft.Extensions.Options; // NOVO: Para usar o padrão IOptions<T>
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-
-// Nota: Certifique-se que o namespace da sua classe JwtOptions está aqui ou use o caminho completo.
 using GearShop.Configuration;
 
 namespace GearShop.Services.Auth
@@ -18,20 +15,13 @@ namespace GearShop.Services.Auth
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
-        // SUBSTITUÍDO: Removemos a dependência direta do IConfiguration para a chave JWT
-        // private readonly IConfiguration _configuration; 
-        private readonly JwtOptions _jwtOptions; // NOVO: Campo tipado para as opções JWT
+        private readonly JwtOptions _jwtOptions;
 
-        // CONSTRUTOR MODIFICADO: Recebe IOptions<JwtOptions>
         public AuthService(IUserRepository userRepository, IOptions<JwtOptions> jwtOptions)
         {
             _userRepository = userRepository;
-            _jwtOptions = jwtOptions.Value; // Acesso ao objeto de configuração real
+            _jwtOptions = jwtOptions.Value;
         }
-
-        // Se precisar do IConfiguration para outras coisas, pode mantê-lo, mas neste exemplo foi removido.
-        // Se o IConfiguration não for mais usado nesta classe, remova-o do construtor.
-        // public AuthService(IUserRepository userRepository, IConfiguration configuration) { ... }
 
         public async Task<LoginResponseDto?> Authenticate(LoginDto loginData)
         {
@@ -50,7 +40,7 @@ namespace GearShop.Services.Auth
                 Name = user.Name,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                ProfilePicture = user.ProfilePicture,
+                // Removed: ProfilePicture = user.ProfilePicture,
                 Cidade = user.Cidade,
                 Estado = user.Estado,
                 Role = user.Role.ToString()
@@ -74,12 +64,10 @@ namespace GearShop.Services.Auth
                 new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
-            // LEITURA DA CHAVE AGORA SEGURA E TIPADA: Resolve o problema do SonarQube
             var secretKey = _jwtOptions.Key;
 
             if (string.IsNullOrEmpty(secretKey))
             {
-                // Garante que a aplicação falha se a chave não estiver configurada
                 throw new InvalidOperationException("A chave JWT está vazia. Verifique a configuração em appsettings.json (Jwt:Key).");
             }
 
