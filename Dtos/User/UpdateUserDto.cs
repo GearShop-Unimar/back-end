@@ -14,9 +14,6 @@ namespace GearShop.Dtos
         [Required, Phone, MaxLength(30)]
         public string PhoneNumber { get; set; } = string.Empty;
 
-        [Required, Url, MaxLength(500)]
-        public string ProfilePicture { get; set; } = string.Empty;
-
         [Required, CpfValidation]
         [MaxLength(11)]
         public string Cpf { get; set; } = string.Empty;

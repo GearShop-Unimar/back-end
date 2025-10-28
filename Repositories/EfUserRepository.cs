@@ -31,20 +31,12 @@ namespace GearShop.Repositories
             u.Name = data.Name;
             u.Email = data.Email;
             u.PhoneNumber = data.PhoneNumber;
-            // Removed: u.ProfilePicture = data.ProfilePicture;
-            // Update image data if provided in 'data' object
-            if (data.ProfilePictureData != null)
-            {
-                u.ProfilePictureData = data.ProfilePictureData;
-                u.ProfilePictureMimeType = data.ProfilePictureMimeType;
-            }
             u.Cpf = data.Cpf;
             u.Estado = data.Estado;
             u.Cidade = data.Cidade;
             u.Cep = data.Cep;
             u.Rua = data.Rua;
             u.NumeroCasa = data.NumeroCasa;
-            // Role and PasswordHash are typically not updated here
 
             await _db.SaveChangesAsync();
             return u;
