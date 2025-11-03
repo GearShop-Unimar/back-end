@@ -11,28 +11,28 @@ namespace GearShop.Controllers
     [Produces("application/json")]
     public class PaymentController : ControllerBase
     {
-        private readonly IPaymentRepository _paymentRepository;
-        private readonly IOrderRepository _orderRepository;
+        private readonly IPaymentRepository paymentRepository;
+        private readonly IOrderRepository orderRepository;
 
         public PaymentController(
             IPaymentRepository paymentRepository,
             IOrderRepository orderRepository)
         {
-            _paymentRepository = paymentRepository;
-            _orderRepository = orderRepository;
+            this.paymentRepository = paymentRepository;
+            this.orderRepository = orderRepository;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Payment>>> GetAll()
         {
-            var payments = await _paymentRepository.GetAllAsync();
+            var payments = await paymentRepository.GetAllAsync();
             return Ok(payments);
         }
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Payment>> GetById(int id)
         {
-            var payment = await _paymentRepository.GetByIdAsync(id);
+            var payment = await paymentRepository.GetByIdAsync(id);
             if (payment is null)
                 return NotFound(new { message = $"Payment with ID {id} not found" });
 
@@ -42,21 +42,21 @@ namespace GearShop.Controllers
         [HttpGet("order/{orderId:int}")]
         public async Task<ActionResult<IEnumerable<Payment>>> GetByOrderId(int orderId)
         {
-            var payments = await _paymentRepository.GetByOrderIdAsync(orderId);
+            var payments = await paymentRepository.GetByOrderIdAsync(orderId);
             return Ok(payments);
         }
 
         [HttpGet("user/{userId:int}")]
         public async Task<ActionResult<IEnumerable<Payment>>> GetByUserId(int userId)
         {
-            var payments = await _paymentRepository.GetByUserIdAsync(userId);
+            var payments = await paymentRepository.GetByUserIdAsync(userId);
             return Ok(payments);
         }
 
         [HttpGet("pending")]
         public async Task<ActionResult<IEnumerable<Payment>>> GetPendingPayments()
         {
-            var payments = await _paymentRepository.GetPendingPaymentsAsync();
+            var payments = await paymentRepository.GetPendingPaymentsAsync();
             return Ok(payments);
         }
 
@@ -65,7 +65,7 @@ namespace GearShop.Controllers
         public async Task<ActionResult<Payment>> Create([FromBody] CreatePaymentDto dto)
         {
             // Verificar se o pedido existe
-            var order = await _orderRepository.GetByIdAsync(dto.OrderId);
+            var order = await orderRepository.GetByIdAsync(dto.OrderId);
             if (order is null)
                 return BadRequest(new { message = $"Order with ID {dto.OrderId} not found" });
 
@@ -77,7 +77,7 @@ namespace GearShop.Controllers
                 Amount = dto.Amount
             };
 
-            var createdPayment = await _paymentRepository.CreateAsync(payment);
+            var createdPayment = await paymentRepository.CreateAsync(payment);
 
             // Simular processamento do pagamento baseado no tipo
             await ProcessPaymentAsync(createdPayment);
@@ -102,7 +102,7 @@ namespace GearShop.Controllers
                 CardBrand = dto.CardBrand
             };
 
-            var updatedPayment = await _paymentRepository.UpdateAsync(id, paymentToUpdate);
+            var updatedPayment = await paymentRepository.UpdateAsync(id, paymentToUpdate);
             if (updatedPayment is null)
                 return NotFound(new { message = $"Payment with ID {id} not found" });
 
@@ -112,30 +112,30 @@ namespace GearShop.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var ok = await _paymentRepository.DeleteAsync(id);
+            var ok = await paymentRepository.DeleteAsync(id);
             return ok ? NoContent() : NotFound(new { message = $"Payment with ID {id} not found" });
         }
 
         [HttpPost("{id:int}/approve")]
         public async Task<ActionResult<Payment>> ApprovePayment(int id)
         {
-            var payment = await _paymentRepository.GetByIdAsync(id);
+            var payment = await paymentRepository.GetByIdAsync(id);
             if (payment is null)
                 return NotFound(new { message = $"Payment with ID {id} not found" });
 
             payment.Status = PaymentStatus.Approved;
             payment.ProcessedAt = DateTime.UtcNow;
 
-            var updatedPayment = await _paymentRepository.UpdateAsync(id, payment);
+            var updatedPayment = await paymentRepository.UpdateAsync(id, payment);
 
             // Atualizar status do pedido se for um pagamento de pedido
             if (payment.OrderId.HasValue)
             {
-                var order = await _orderRepository.GetByIdAsync(payment.OrderId.Value);
+                var order = await orderRepository.GetByIdAsync(payment.OrderId.Value);
                 if (order is not null)
                 {
                     order.Status = OrderStatus.Confirmed;
-                    await _orderRepository.UpdateAsync(order.Id, order);
+                    await orderRepository.UpdateAsync(order.Id, order);
                 }
             }
 
@@ -145,7 +145,7 @@ namespace GearShop.Controllers
         [HttpPost("{id:int}/reject")]
         public async Task<ActionResult<Payment>> RejectPayment(int id, [FromBody] string reason)
         {
-            var payment = await _paymentRepository.GetByIdAsync(id);
+            var payment = await paymentRepository.GetByIdAsync(id);
             if (payment is null)
                 return NotFound(new { message = $"Payment with ID {id} not found" });
 
@@ -153,7 +153,7 @@ namespace GearShop.Controllers
             payment.ProcessedAt = DateTime.UtcNow;
             payment.FailureReason = reason;
 
-            var updatedPayment = await _paymentRepository.UpdateAsync(id, payment);
+            var updatedPayment = await paymentRepository.UpdateAsync(id, payment);
 
             return Ok(updatedPayment);
         }
@@ -191,7 +191,7 @@ namespace GearShop.Controllers
                     break;
             }
 
-            await _paymentRepository.UpdateAsync(payment.Id, payment);
+            await paymentRepository.UpdateAsync(payment.Id, payment);
         }
     }
 }

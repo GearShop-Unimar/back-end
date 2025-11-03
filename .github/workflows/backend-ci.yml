@@ -3,7 +3,7 @@ name: .NET Build & Analysis
 on:
   push:
     paths:
-      - "BackEndGearShop/**" # Só correr se o back-end mudar
+      - "BackEndGearShop/**"
   pull_request:
     paths:
       - "BackEndGearShop/**"
@@ -12,7 +12,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # Define o diretório de trabalho para os comandos dotnet
     defaults:
       run:
         working-directory: ./BackEndGearShop
@@ -24,17 +23,13 @@ jobs:
       - name: Set up .NET 9
         uses: actions/setup-dotnet@v4
         with:
-          # Vimos 'net9.0' nos seus logs, por isso usamos 9.0.x
           dotnet-version: "9.0.x"
 
       - name: Restore dependencies
         run: dotnet restore
 
-      # Este passo é o "lint:fix" do C#
       - name: Check code formatting
         run: dotnet format --verify-no-changes
 
-      # Este passo é o "lint" do C#.
-      # Ele corre o build E todos os Analyzers.
       - name: Build and run analyzers
         run: dotnet build --no-restore

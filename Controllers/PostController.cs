@@ -1,28 +1,23 @@
-using GearShop.Dtos.Post;
-using GearShop.Services;
-using Microsoft.AspNetCore.Authorization;
-// REMOVED: using Microsoft.AspNetCore.Hosting; // No longer needed here
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.IO; // Keep for potential future use or remove if unused elsewhere
-using System.Security.Claims;
-using System.Threading.Tasks;
-
 namespace GearShop.Controllers
 {
+    using System.Security.Claims;
+    using GearShop.Dtos.Post;
+    using GearShop.Services;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+
     [Authorize]
     [ApiController]
     [Route("api/posts")]
     public class PostController : ControllerBase
     {
-        private readonly IPostService _postService;
+        private readonly IPostService postService;
         // REMOVED: IWebHostEnvironment dependency
 
         // Constructor updated to remove IWebHostEnvironment
         public PostController(IPostService postService)
         {
-            _postService = postService;
+            this.postService = postService;
         }
 
         private int GetUserId()
@@ -39,7 +34,7 @@ namespace GearShop.Controllers
         public async Task<IActionResult> GetFeed()
         {
             var userId = GetUserId();
-            var posts = await _postService.GetFeedAsync(userId);
+            var posts = await postService.GetFeedAsync(userId);
             return Ok(posts);
         }
 
@@ -47,7 +42,7 @@ namespace GearShop.Controllers
         public async Task<IActionResult> GetPostById(int id)
         {
             var userId = GetUserId();
-            var post = await _postService.GetPostByIdAsync(id, userId);
+            var post = await postService.GetPostByIdAsync(id, userId);
             if (post == null) return NotFound();
             return Ok(post);
         }
@@ -57,15 +52,12 @@ namespace GearShop.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreatePost([FromForm] CreatePostDto dto)
         {
-            var authorId = GetUserId(); // Renamed variable
+            var authorId = GetUserId();
 
-            // REMOVED: All logic related to imageUrl, uniqueFileName, uploadsFolder, filePath, FileStream
 
             try
             {
-                // Call the service method that now expects only DTO and authorId
-                // The service (PostService) will handle reading the IFormFile from the DTO
-                var newPost = await _postService.CreatePostAsync(dto, authorId);
+                var newPost = await postService.CreatePostAsync(dto, authorId);
                 return CreatedAtAction(nameof(GetPostById), new { id = newPost.Id }, newPost);
             }
             catch (ArgumentException ex) // Catch specific errors like file size from the service
@@ -87,7 +79,7 @@ namespace GearShop.Controllers
         public async Task<IActionResult> ToggleLike(int postId)
         {
             var userId = GetUserId();
-            var result = await _postService.ToggleLikeAsync(postId, userId);
+            var result = await postService.ToggleLikeAsync(postId, userId);
             return Ok(result);
         }
 
@@ -95,14 +87,14 @@ namespace GearShop.Controllers
         public async Task<IActionResult> CreateComment(int postId, [FromBody] CreateCommentDto dto)
         {
             var userId = GetUserId();
-            var newComment = await _postService.CreateCommentAsync(postId, userId, dto);
+            var newComment = await postService.CreateCommentAsync(postId, userId, dto);
             return Ok(newComment);
         }
 
         [HttpGet("{postId}/comments")]
         public async Task<IActionResult> GetComments(int postId)
         {
-            var comments = await _postService.GetCommentsAsync(postId);
+            var comments = await postService.GetCommentsAsync(postId);
             return Ok(comments);
         }
 
@@ -110,7 +102,7 @@ namespace GearShop.Controllers
         public async Task<IActionResult> DeletePost(int id)
         {
             var userId = GetUserId();
-            var success = await _postService.DeletePostAsync(id, userId);
+            var success = await postService.DeletePostAsync(id, userId);
 
             if (!success)
             {
