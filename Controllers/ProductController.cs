@@ -1,5 +1,5 @@
 using GearShop.Dtos.Product;
-using GearShop.Services.Product; // Correct using directive
+using GearShop.Services.Product;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -7,19 +7,18 @@ using System.IO;
 using System;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using GearShop.Services; // Added for Authorize attribute
-
+using GearShop.Services;
 
 namespace GearShop.Controllers
 {
-    [Authorize] // Added Authorize attribute, common for product creation
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
 
-        public ProductController(IProductService productService) // Updated constructor
+        public ProductController(IProductService productService)
         {
             _productService = productService;
         }
@@ -34,7 +33,7 @@ namespace GearShop.Controllers
             return userId;
         }
 
-        [AllowAnonymous] // Assuming fetching products is public
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
@@ -42,7 +41,7 @@ namespace GearShop.Controllers
             return Ok(products);
         }
 
-        [AllowAnonymous] // Assuming fetching product by ID is public
+        [AllowAnonymous]
         [HttpGet("{id}", Name = "GetProductById")]
         public async Task<IActionResult> GetByIdAsync(int id)
         {
@@ -83,7 +82,6 @@ namespace GearShop.Controllers
                 return BadRequest(ModelState);
             }
 
-
             try
             {
                 var product = await _productService.CreateAsync(dto, imageData, imageMimeType, sellerId);
@@ -91,12 +89,91 @@ namespace GearShop.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creating product: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro ao criar o produto.");
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Ocorreu um erro ao criar o produto: {ex.Message}");
             }
         }
 
-        // Add UpdateAsync and DeleteAsync methods here if needed,
-        // applying similar logic for image handling in UpdateAsync
+        [HttpPut("{id}")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UpdateAsync(int id, [FromForm] UpdateProductDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userId = GetUserId();
+            var product = await _productService.GetByIdAsync(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            if (product.SellerId != userId)
+            {
+                return Forbid();
+            }
+
+            byte[]? imageData = null;
+            string? imageMimeType = null;
+
+            if (dto.ImageFile != null && dto.ImageFile.Length > 0)
+            {
+                if (dto.ImageFile.Length > 5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("ImageFile", "O arquivo de imagem deve ter no máximo 5MB.");
+                    return BadRequest(ModelState);
+                }
+                using (var memoryStream = new MemoryStream())
+                {
+                    await dto.ImageFile.CopyToAsync(memoryStream);
+                    imageData = memoryStream.ToArray();
+                    imageMimeType = dto.ImageFile.ContentType;
+                }
+            }
+
+            try
+            {
+                var updatedProduct = await _productService.UpdateAsync(id, dto, imageData, imageMimeType);
+                if (updatedProduct == null)
+                {
+                    return NotFound();
+                }
+                return Ok(updatedProduct);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Ocorreu um erro ao atualizar o produto: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAsync(int id)
+        {
+            var userId = GetUserId();
+            var product = await _productService.GetByIdAsync(id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            if (product.SellerId != userId)
+            {
+                return Forbid();
+            }
+
+            try
+            {
+                var success = await _productService.DeleteAsync(id);
+                if (!success)
+                {
+                    return NotFound();
+                }
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Ocorreu um erro ao apagar o produto: {ex.Message}");
+            }
+        }
     }
 }

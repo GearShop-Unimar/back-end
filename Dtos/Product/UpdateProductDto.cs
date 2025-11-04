@@ -1,20 +1,27 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
-// Mantenha o namespace consistente com a pasta Dtos/Product
 namespace GearShop.Dtos.Product
 {
-    // Ele herda todos os campos, como Name, Price, StockQuantity, etc., 
-    // do CreateProductDto.
     public class UpdateProductDto
     {
+        [Required, MaxLength(200)]
         public string Name { get; set; } = string.Empty;
+
+        [MaxLength(1000)]
         public string Description { get; set; } = string.Empty;
+
+        [Required]
+        [Range(0.01, double.MaxValue)]
         public decimal Price { get; set; }
+
+        [Required]
+        [Range(0, int.MaxValue)]
         public int StockQuantity { get; set; }
-        public string MainImageUrl { get; set; } = string.Empty;
+
+        [Required, MaxLength(100)]
         public string Category { get; set; } = string.Empty;
 
-        // Adicione SellerId
-        public int SellerId { get; set; }
+        public IFormFile? ImageFile { get; set; }
     }
 }

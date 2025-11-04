@@ -10,5 +10,7 @@ namespace GearShop.Dtos.Product
         public string MainImageUrl { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
         public int SellerId { get; set; }
+        public float AverageRating { get; set; }
+        public int ReviewCount { get; set; }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GearShop.Controllers
 {
     [ApiController]
-    [Route("api/review")] // Alterei a rota para /api/review
+    [Route("api/review")]
     public class ReviewController : ControllerBase
     {
         private readonly IReviewService _reviewService;
@@ -16,17 +16,14 @@ namespace GearShop.Controllers
             this._reviewService = reviewService;
         }
 
-        // POST /api/review
         [HttpPost]
-        [Authorize] // Só utilizadores autenticados podem criar
+        [Authorize]
         public async Task<IActionResult> CreateReview([FromBody] CreateReviewDto createDto)
         {
             try
             {
-                // Passa o 'User' (ClaimsPrincipal) do HttpContext para o serviço
                 var reviewDto = await this._reviewService.CreateReviewAsync(createDto, this.User);
 
-                // Retorna 201 Created com a localização do novo recurso
                 return CreatedAtAction(nameof(GetReviewById), new { id = reviewDto.Id }, reviewDto);
             }
             catch (KeyNotFoundException ex)
@@ -35,7 +32,7 @@ namespace GearShop.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { message = ex.Message }); // Conflito (ex: já avaliou)
+                return Conflict(new { message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -43,19 +40,18 @@ namespace GearShop.Controllers
             }
         }
 
-        // GET /api/review/product/5
+
         [HttpGet("product/{productId}")]
-        [AllowAnonymous] // Todos podem ver as reviews
+        [AllowAnonymous]
         public async Task<IActionResult> GetReviewsForProduct(int productId)
         {
             var reviews = await this._reviewService.GetReviewsForProductAsync(productId);
             return Ok(reviews);
         }
 
-        // Este método é só para o CreatedAtAction funcionar.
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetReviewById(int id)
+        public IActionResult GetReviewById(int id)
         {
             return Ok(new { message = $"Endpoint para GetReviewById({id}) chamado." });
         }
