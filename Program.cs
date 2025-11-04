@@ -19,6 +19,7 @@ using GearShop.Services.Auth;
 using GearShop.Services.Product;
 
 using GearShop.Configuration;
+using GearShop.Services.Review;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,10 +87,6 @@ builder.Services.AddSwaggerGen(c =>
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// --- ERRO AQUI ---
-// O teu código tem `AppDbContext` mas o meu `PostService` usa `ApplicationDbContext`
-// Vamos assumir que o nome correto é `AppDbContext` como está aqui.
-// Se o teu DbContext se chamar `ApplicationDbContext`, muda aqui.
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
@@ -99,12 +96,14 @@ builder.Services.AddScoped<IProductRepository, EfProductRepository>();
 builder.Services.AddScoped<IOrderRepository, EfOrderRepository>();
 builder.Services.AddScoped<IPaymentRepository, EfPaymentRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, EfSubscriptionRepository>();
+builder.Services.AddScoped<IReviewRepository, EfReviewRepository>();
 
 // --- Serviços ---
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IPostService, PostService>(); // <-- ADICIONE ESTA LINHA
+builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 builder.Services.Configure<JwtOptions>(
     builder.Configuration.GetSection(JwtOptions.Jwt));

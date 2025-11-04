@@ -15,12 +15,16 @@ namespace GearShop.Repositories
 
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
-            return await _context.Products.ToListAsync();
+            return await _context.Products
+                .Include(p => p.Reviews)
+                .ToListAsync();
         }
 
         public async Task<Product?> GetByIdAsync(int id)
         {
-            return await _context.Products.FindAsync(id);
+            return await _context.Products
+                .Include(p => p.Reviews)
+                .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<Product> CreateAsync(Product product)
@@ -39,6 +43,13 @@ namespace GearShop.Repositories
             existingProduct.Description = product.Description;
             existingProduct.Price = product.Price;
             existingProduct.StockQuantity = product.StockQuantity;
+            existingProduct.Category = product.Category;
+
+            if (product.ImageData != null)
+            {
+                existingProduct.ImageData = product.ImageData;
+                existingProduct.ImageMimeType = product.ImageMimeType;
+            }
 
             await _context.SaveChangesAsync();
             return existingProduct;
@@ -53,6 +64,5 @@ namespace GearShop.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
-
     }
 }

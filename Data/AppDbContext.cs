@@ -16,6 +16,11 @@ namespace GearShop.Data
         public DbSet<Post> Posts { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<PostLike> PostLikes { get; set; }
+
+        // --- ADICIONADO PARA AVALIAÇÃO DE PRODUTO ---
+        public DbSet<ProductReview> ProductReviews { get; set; }
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -55,6 +60,21 @@ namespace GearShop.Data
 
             modelBuilder.Entity<Subscription>()
                 .HasIndex(s => s.NextPaymentDate);
+
+            // --- ADICIONADO PARA AVALIAÇÃO DE PRODUTO ---
+            // Configura a relação (Review -> Produto)
+            modelBuilder.Entity<ProductReview>()
+                .HasOne(r => r.Product)
+                .WithMany(p => p.Reviews)
+                .HasForeignKey(r => r.ProductId)
+                .OnDelete(DeleteBehavior.Cascade); // Se apagar o produto, apaga as reviews
+
+            // Configura a relação (Review -> Utilizador/Autor)
+            modelBuilder.Entity<ProductReview>()
+                .HasOne(r => r.Author)
+                .WithMany(u => u.ProductReviews)
+                .HasForeignKey(r => r.AuthorId)
+                .OnDelete(DeleteBehavior.Cascade); // Se apagar o user, apaga as reviews
         }
     }
 }
