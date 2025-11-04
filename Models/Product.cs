@@ -24,5 +24,7 @@ namespace GearShop.Models
         public int SellerId { get; set; }
         [ForeignKey("SellerId")] // Good practice to add ForeignKey attribute
         public User? Seller { get; set; } // Changed to nullable to match previous fixes
+
+        public ICollection<ProductReview> Reviews { get; set; } = new List<ProductReview>();
     }
 }

@@ -36,6 +36,7 @@ namespace GearShop.Models
         public string NumeroCasa { get; set; } = string.Empty;
         public Role Role { get; set; }
         public ICollection<Product> Products { get; set; } = new List<Product>();
+        public ICollection<ProductReview> ProductReviews { get; set; } = new List<ProductReview>();
     }
 
     public enum Role
