@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 using GearShop.Validators;
 
 namespace GearShop.Models
@@ -37,6 +38,15 @@ namespace GearShop.Models
         public Role Role { get; set; }
         public ICollection<Product> Products { get; set; } = new List<Product>();
         public ICollection<ProductReview> ProductReviews { get; set; } = new List<ProductReview>();
+
+        [InverseProperty("ParticipantA")]
+        public virtual ICollection<Conversation> ConversationsAsParticipantA { get; set; } = new List<Conversation>();
+
+        [InverseProperty("ParticipantB")]
+        public virtual ICollection<Conversation> ConversationsAsParticipantB { get; set; } = new List<Conversation>();
+
+        [InverseProperty("Sender")]
+        public virtual ICollection<Message> SentMessages { get; set; } = new List<Message>();
     }
 
     public enum Role

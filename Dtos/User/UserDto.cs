@@ -3,12 +3,13 @@ namespace GearShop.Dtos.User
     public class UserDto
     {
         public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string PhoneNumber { get; set; } = string.Empty;
+        public required string Name { get; set; } = string.Empty;
+        public required string Email { get; set; } = string.Empty;
+        public required string PhoneNumber { get; set; } = string.Empty;
         public string ProfilePicture { get; set; } = string.Empty;
-        public string Cidade { get; set; } = string.Empty;
-        public string Estado { get; set; } = string.Empty;
-        public string Role { get; set; } = string.Empty; // Client, Seller, ou Admin
+        public required string Cidade { get; set; } = string.Empty;
+        public required string Estado { get; set; } = string.Empty;
+        public required string Role { get; set; } = string.Empty;
+        public required string Avatar { get; set; } = string.Empty;
     }
 }

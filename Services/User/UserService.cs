@@ -19,6 +19,17 @@ namespace GearShop.Services.User
             _userRepository = userRepository;
         }
 
+        // --- FUNÇÃO UTILITÁRIA ADICIONADA ---
+        private string ConvertProfilePictureToDataUri(byte[]? data, string? mimeType)
+        {
+            if (data == null || data.Length == 0 || string.IsNullOrEmpty(mimeType))
+            {
+                return "https://i.imgur.com/V4RclNb.png"; // Placeholder
+            }
+            string base64String = Convert.ToBase64String(data);
+            return $"data:{mimeType};base64,{base64String}";
+        }
+
         public async Task<IEnumerable<UserDto>> GetAllAsync()
         {
             var users = await _userRepository.GetAllAsync();
@@ -62,7 +73,6 @@ namespace GearShop.Services.User
 
         public async Task<UserDto?> UpdateAsync(int id, UpdateUserDto dto)
         {
-            // Note: This method currently doesn't handle updating PasswordHash or ProfilePictureData
             if (await _userRepository.EmailExistsAsync(dto.Email, id))
             {
                 throw new Exception("Este endereço de email já está em uso.");
@@ -74,7 +84,6 @@ namespace GearShop.Services.User
             existingUser.Name = dto.Name;
             existingUser.Email = dto.Email;
             existingUser.PhoneNumber = dto.PhoneNumber;
-            // ProfilePictureData/MimeType update would need byte[] passed in
             existingUser.Cpf = dto.Cpf;
             existingUser.Estado = dto.Estado;
             existingUser.Cidade = dto.Cidade;
@@ -82,7 +91,7 @@ namespace GearShop.Services.User
             existingUser.Rua = dto.Rua;
             existingUser.NumeroCasa = dto.NumeroCasa;
 
-            var updatedUser = await _userRepository.UpdateAsync(id, existingUser); // Assuming UpdateAsync takes the full user object
+            var updatedUser = await _userRepository.UpdateAsync(id, existingUser);
             return updatedUser is null ? null : ToUserDto(updatedUser);
         }
 
@@ -93,6 +102,8 @@ namespace GearShop.Services.User
 
         private UserDto ToUserDto(UserModel user)
         {
+            string avatarUri = ConvertProfilePictureToDataUri(user.ProfilePictureData, user.ProfilePictureMimeType);
+
             return new UserDto
             {
                 Id = user.Id,
@@ -101,7 +112,11 @@ namespace GearShop.Services.User
                 PhoneNumber = user.PhoneNumber,
                 Cidade = user.Cidade,
                 Estado = user.Estado,
-                Role = user.Role.ToString()
+                Role = user.Role.ToString(),
+
+                // Campos 'required' adicionados
+                ProfilePicture = avatarUri,
+                Avatar = avatarUri
             };
         }
     }

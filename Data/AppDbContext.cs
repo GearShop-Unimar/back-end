@@ -16,37 +16,33 @@ namespace GearShop.Data
         public DbSet<Post> Posts { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<PostLike> PostLikes { get; set; }
-
-        // --- ADICIONADO PARA AVALIAÇÃO DE PRODUTO ---
         public DbSet<ProductReview> ProductReviews { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configuração do relacionamento Order -> OrderItems
             modelBuilder.Entity<OrderItem>()
                 .HasOne(oi => oi.Order)
                 .WithMany(o => o.OrderItems)
                 .HasForeignKey(oi => oi.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configuração do relacionamento Order -> Payments
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.Order)
                 .WithMany(o => o.Payments)
                 .HasForeignKey(p => p.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configuração do relacionamento Subscription -> Payments
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.Subscription)
                 .WithMany(s => s.Payments)
                 .HasForeignKey(p => p.SubscriptionId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configuração de índices
             modelBuilder.Entity<Payment>()
                 .HasIndex(p => p.ExternalPaymentId)
                 .IsUnique()
@@ -61,20 +57,41 @@ namespace GearShop.Data
             modelBuilder.Entity<Subscription>()
                 .HasIndex(s => s.NextPaymentDate);
 
-            // --- ADICIONADO PARA AVALIAÇÃO DE PRODUTO ---
-            // Configura a relação (Review -> Produto)
             modelBuilder.Entity<ProductReview>()
                 .HasOne(r => r.Product)
                 .WithMany(p => p.Reviews)
                 .HasForeignKey(r => r.ProductId)
-                .OnDelete(DeleteBehavior.Cascade); // Se apagar o produto, apaga as reviews
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // Configura a relação (Review -> Utilizador/Autor)
             modelBuilder.Entity<ProductReview>()
                 .HasOne(r => r.Author)
                 .WithMany(u => u.ProductReviews)
                 .HasForeignKey(r => r.AuthorId)
-                .OnDelete(DeleteBehavior.Cascade); // Se apagar o user, apaga as reviews
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Sender)
+                .WithMany(u => u.SentMessages)
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Conversation)
+                .WithMany(c => c.Messages)
+                .HasForeignKey(m => m.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Conversation>()
+                .HasOne(c => c.ParticipantA)
+                .WithMany(u => u.ConversationsAsParticipantA)
+                .HasForeignKey(c => c.ParticipantAId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Conversation>()
+                .HasOne(c => c.ParticipantB)
+                .WithMany(u => u.ConversationsAsParticipantB)
+                .HasForeignKey(c => c.ParticipantBId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
