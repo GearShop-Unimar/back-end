@@ -23,6 +23,16 @@ namespace GearShop.Services.Auth
             _jwtOptions = jwtOptions.Value;
         }
 
+        private string ConvertProfilePictureToDataUri(byte[]? data, string? mimeType)
+        {
+            if (data == null || data.Length == 0 || string.IsNullOrEmpty(mimeType))
+            {
+                return "https://i.imgur.com/V4RclNb.png";
+            }
+            string base64String = Convert.ToBase64String(data);
+            return $"data:{mimeType};base64,{base64String}";
+        }
+
         public async Task<LoginResponseDto?> Authenticate(LoginDto loginData)
         {
             var user = await _userRepository.GetByEmailAsync(loginData.Email);
@@ -34,16 +44,22 @@ namespace GearShop.Services.Auth
 
             var tokenString = GenerateJwtToken(user);
 
+            // --- CORREÇÃO APLICADA AQUI ---
+            string avatarUri = ConvertProfilePictureToDataUri(user.ProfilePictureData, user.ProfilePictureMimeType);
+
             var userDto = new UserDto
             {
                 Id = user.Id,
                 Name = user.Name,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                // Removed: ProfilePicture = user.ProfilePicture,
                 Cidade = user.Cidade,
                 Estado = user.Estado,
-                Role = user.Role.ToString()
+                Role = user.Role.ToString(),
+
+                // Campos 'required' adicionados
+                ProfilePicture = avatarUri,
+                Avatar = avatarUri
             };
 
             return new LoginResponseDto
