@@ -20,11 +20,23 @@ namespace GearShop.Data
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Message> Messages { get; set; }
 
+        // --- CORREÇÃO: Estas linhas estavam a faltar ---
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
+        // ---------------------------------------------
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            // Configuração do Carrinho (Se apagar carrinho, apaga itens)
+            modelBuilder.Entity<Cart>()
+                .HasMany(c => c.Items)
+                .WithOne(i => i.Cart)
+                .HasForeignKey(i => i.CartId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // --- Configurações Existentes ---
             modelBuilder.Entity<OrderItem>()
                 .HasOne(oi => oi.Order)
                 .WithMany(o => o.OrderItems)
