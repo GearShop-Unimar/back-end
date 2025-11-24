@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.ResponseCompression; // Novo
+using System.IO.Compression; // Novo
 
 using GearShop.Data;
 using GearShop.Repositories;
@@ -17,12 +19,31 @@ using GearShop.Services;
 using GearShop.Services.User;
 using GearShop.Services.Auth;
 using GearShop.Services.Product;
-
 using GearShop.Configuration;
 using GearShop.Services.Review;
+using GearShop.Services.CartService;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// --- Configuração de Compressão (Performance) ---
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
+
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Fastest;
+});
+
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.SmallestSize;
+});
+
+// --- Configuração de CORS ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicyFrontend",
@@ -32,6 +53,7 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader());
 });
 
+// --- Configuração de JWT ---
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!);
 
 builder.Services.AddAuthentication(x =>
@@ -57,8 +79,10 @@ builder.Services.AddControllers()
     {
         o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
+// --- Swagger ---
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -85,6 +109,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// --- Banco de Dados ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
@@ -97,6 +122,7 @@ builder.Services.AddScoped<IOrderRepository, EfOrderRepository>();
 builder.Services.AddScoped<IPaymentRepository, EfPaymentRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, EfSubscriptionRepository>();
 builder.Services.AddScoped<IReviewRepository, EfReviewRepository>();
+builder.Services.AddScoped<ICartRepository, EfCartRepository>();
 
 // --- Serviços ---
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -104,11 +130,15 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<ICartService, CartService>();
 
 builder.Services.Configure<JwtOptions>(
     builder.Configuration.GetSection(JwtOptions.Jwt));
 
 var app = builder.Build();
+
+// Ativa a compressão antes de tudo
+app.UseResponseCompression();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
