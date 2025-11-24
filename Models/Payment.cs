@@ -10,9 +10,9 @@ namespace GearShop.Models
         
         public int? OrderId { get; set; }
         public Order? Order { get; set; }
-        
-        public int? SubscriptionId { get; set; }
-        public Subscription? Subscription { get; set; }
+
+        public int? PremiumAccountId { get; set; }
+        public PremiumAccount? PremiumAccount { get; set; }
         
         [Required]
         public PaymentType PaymentType { get; set; }

@@ -12,7 +12,6 @@ namespace GearShop.Data
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
         public DbSet<Payment> Payments => Set<Payment>();
-        public DbSet<Subscription> Subscriptions => Set<Subscription>();
         public DbSet<Post> Posts { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<PostLike> PostLikes { get; set; }
@@ -20,23 +19,26 @@ namespace GearShop.Data
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Message> Messages { get; set; }
 
-        // --- CORREÇÃO: Estas linhas estavam a faltar ---
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
-        // ---------------------------------------------
+        public DbSet<PremiumAccount> PremiumAccounts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configuração do Carrinho (Se apagar carrinho, apaga itens)
+            modelBuilder.Entity<PremiumAccount>()
+                .HasOne(a => a.User)
+                .WithOne(u => u.PremiumAccount)
+                .HasForeignKey<PremiumAccount>(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Cart>()
                 .HasMany(c => c.Items)
                 .WithOne(i => i.Cart)
                 .HasForeignKey(i => i.CartId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // --- Configurações Existentes ---
             modelBuilder.Entity<OrderItem>()
                 .HasOne(oi => oi.Order)
                 .WithMany(o => o.OrderItems)
@@ -50,9 +52,9 @@ namespace GearShop.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Payment>()
-                .HasOne(p => p.Subscription)
+                .HasOne(p => p.PremiumAccount)
                 .WithMany(s => s.Payments)
-                .HasForeignKey(p => p.SubscriptionId)
+                .HasForeignKey(p => p.PremiumAccountId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Payment>()
@@ -62,12 +64,6 @@ namespace GearShop.Data
 
             modelBuilder.Entity<Payment>()
                 .HasIndex(p => new { p.OrderId, p.PaymentType });
-
-            modelBuilder.Entity<Subscription>()
-                .HasIndex(s => new { s.UserId, s.ProductId });
-
-            modelBuilder.Entity<Subscription>()
-                .HasIndex(s => s.NextPaymentDate);
 
             modelBuilder.Entity<ProductReview>()
                 .HasOne(r => r.Product)

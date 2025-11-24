@@ -16,12 +16,20 @@ namespace GearShop.Repositories
         }
 
         // Mudei de Task<Cart> para Task<Cart?>
-        public async Task<Cart?> GetCartByUserIdAsync(int userId)
+        public async Task<Cart?> GetCartByUserIdAsync(int userId, bool includePremiumAccount = false)
         {
-            return await _context.Carts
+            var query = _context.Carts
                 .Include(c => c.Items)
                 .ThenInclude(i => i.Product)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
+                .Include(c => c.User)
+                .AsQueryable();
+
+            if (includePremiumAccount)
+            {
+                query = query.Include(c => c.User!).ThenInclude(u => u.PremiumAccount);
+            }
+
+            return await query.FirstOrDefaultAsync(c => c.UserId == userId);
         }
 
         public async Task CreateCartAsync(Cart cart)

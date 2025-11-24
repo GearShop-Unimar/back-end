@@ -19,7 +19,7 @@ namespace GearShop.Repositories
             return await _context.Payments
                 .Include(p => p.Order)
                     .ThenInclude(o => o!.User)
-                .Include(p => p.Subscription)
+                .Include(p => p.PremiumAccount)
                     .ThenInclude(s => s!.User)
                 .ToListAsync();
         }
@@ -29,7 +29,7 @@ namespace GearShop.Repositories
             return await _context.Payments
                 .Include(p => p.Order)
                     .ThenInclude(o => o!.User)
-                .Include(p => p.Subscription)
+                .Include(p => p.PremiumAccount)
                     .ThenInclude(s => s!.User)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
@@ -39,7 +39,7 @@ namespace GearShop.Repositories
             return await _context.Payments
                 .Include(p => p.Order)
                     .ThenInclude(o => o!.User)
-                .Include(p => p.Subscription)
+                .Include(p => p.PremiumAccount)
                     .ThenInclude(s => s!.User)
                 .Where(p => p.OrderId == orderId)
                 .OrderByDescending(p => p.CreatedAt)
@@ -51,10 +51,10 @@ namespace GearShop.Repositories
             return await _context.Payments
                 .Include(p => p.Order)
                     .ThenInclude(o => o!.User)
-                .Include(p => p.Subscription)
+                .Include(p => p.PremiumAccount)
                     .ThenInclude(s => s!.User)
                 .Where(p => (p.Order != null && p.Order.UserId == userId) ||
-                            (p.Subscription != null && p.Subscription.UserId == userId))
+                            (p.PremiumAccount != null && p.PremiumAccount.UserId == userId))
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
         }
@@ -111,7 +111,7 @@ namespace GearShop.Repositories
         {
             return await _context.Payments
                 .Include(p => p.Order)
-                .Include(p => p.Subscription)
+                .Include(p => p.PremiumAccount)
                 .Where(p => p.Status == PaymentStatus.Pending || p.Status == PaymentStatus.Processing)
                 .ToListAsync();
         }

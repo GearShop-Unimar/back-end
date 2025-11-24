@@ -9,9 +9,9 @@ namespace GearShop.Repositories
         private readonly AppDbContext db;
         public EfUserRepository(AppDbContext db) => this.db = db;
 
-        public Task<List<User>> GetAllAsync() => db.Users.AsNoTracking().ToListAsync();
+        public Task<List<User>> GetAllAsync() => db.Users.Include(u => u.PremiumAccount).AsNoTracking().ToListAsync();
 
-        public Task<User?> GetByIdAsync(int id) => db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
+        public Task<User?> GetByIdAsync(int id) => db.Users.Include(u => u.PremiumAccount).AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
 
         public Task<User?> GetByEmailAsync(string email) =>
             db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());

@@ -4,6 +4,7 @@ using GearShop.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GearShop.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251124162852_AddPremiumAccountFeature")]
+    partial class AddPremiumAccountFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -265,9 +268,6 @@ namespace GearShop.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");
 
-                    b.Property<int?>("PremiumAccountId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("ProcessedAt")
                         .HasColumnType("datetime(6)");
 
@@ -278,13 +278,16 @@ namespace GearShop.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<int?>("SubscriptionId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ExternalPaymentId")
                         .IsUnique()
                         .HasFilter("[ExternalPaymentId] IS NOT NULL");
 
-                    b.HasIndex("PremiumAccountId");
+                    b.HasIndex("SubscriptionId");
 
                     b.HasIndex("OrderId", "PaymentType");
 
@@ -356,37 +359,27 @@ namespace GearShop.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<decimal>("MonthlyAmount")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<DateTime?>("NextPaymentDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("UserId1")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId1")
                         .IsUnique();
 
                     b.ToTable("PremiumAccounts");
@@ -469,6 +462,56 @@ namespace GearShop.Migrations
                         .IsUnique();
 
                     b.ToTable("ProductReviews");
+                });
+
+            modelBuilder.Entity("GearShop.Models.Subscription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("MonthlyAmount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime?>("NextPaymentDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NextPaymentDate");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId", "ProductId");
+
+                    b.ToTable("Subscriptions");
                 });
 
             modelBuilder.Entity("GearShop.Models.User", b =>
@@ -673,14 +716,14 @@ namespace GearShop.Migrations
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("GearShop.Models.PremiumAccount", "PremiumAccount")
+                    b.HasOne("GearShop.Models.Subscription", "Subscription")
                         .WithMany("Payments")
-                        .HasForeignKey("PremiumAccountId")
+                        .HasForeignKey("SubscriptionId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Order");
 
-                    b.Navigation("PremiumAccount");
+                    b.Navigation("Subscription");
                 });
 
             modelBuilder.Entity("GearShop.Models.Post", b =>
@@ -716,10 +759,14 @@ namespace GearShop.Migrations
             modelBuilder.Entity("GearShop.Models.PremiumAccount", b =>
                 {
                     b.HasOne("GearShop.Models.User", "User")
-                        .WithOne("PremiumAccount")
+                        .WithOne()
                         .HasForeignKey("GearShop.Models.PremiumAccount", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("GearShop.Models.User", null)
+                        .WithOne("PremiumAccount")
+                        .HasForeignKey("GearShop.Models.PremiumAccount", "UserId1");
 
                     b.Navigation("User");
                 });
@@ -754,6 +801,25 @@ namespace GearShop.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("GearShop.Models.Subscription", b =>
+                {
+                    b.HasOne("GearShop.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GearShop.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("GearShop.Models.Cart", b =>
                 {
                     b.Navigation("Items");
@@ -778,14 +844,14 @@ namespace GearShop.Migrations
                     b.Navigation("Likes");
                 });
 
-            modelBuilder.Entity("GearShop.Models.PremiumAccount", b =>
-                {
-                    b.Navigation("Payments");
-                });
-
             modelBuilder.Entity("GearShop.Models.Product", b =>
                 {
                     b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("GearShop.Models.Subscription", b =>
+                {
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("GearShop.Models.User", b =>
