@@ -9,7 +9,7 @@ namespace GearShop.Services
     {
         Task<IEnumerable<PostDto>> GetFeedAsync(int currentUserId);
         Task<PostDto?> GetPostByIdAsync(int postId, int currentUserId);
-        // UPDATED: No longer takes imageUrl string
+        Task<(byte[]? data, string? mimeType)> GetImageAsync(int postId);
         Task<PostDto> CreatePostAsync(CreatePostDto dto, int authorId);
         Task<ToggleLikeResultDto> ToggleLikeAsync(int postId, int userId);
         Task<CommentDto> CreateCommentAsync(int postId, int userId, CreateCommentDto dto);

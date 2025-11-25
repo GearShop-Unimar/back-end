@@ -1,20 +1,18 @@
+using System.Security.Claims;
+using GearShop.Dtos.Post;
+using GearShop.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
 namespace GearShop.Controllers
 {
-    using System.Security.Claims;
-    using GearShop.Dtos.Post;
-    using GearShop.Services;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
-
     [Authorize]
     [ApiController]
     [Route("api/posts")]
     public class PostController : ControllerBase
     {
         private readonly IPostService postService;
-        // REMOVED: IWebHostEnvironment dependency
 
-        // Constructor updated to remove IWebHostEnvironment
         public PostController(IPostService postService)
         {
             this.postService = postService;
@@ -24,9 +22,7 @@ namespace GearShop.Controllers
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
-            {
                 throw new ApplicationException("ID do utilizador não encontrado no token.");
-            }
             return userId;
         }
 
@@ -47,33 +43,27 @@ namespace GearShop.Controllers
             return Ok(post);
         }
 
-        // --- CreatePost Action Updated ---
         [HttpPost]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreatePost([FromForm] CreatePostDto dto)
         {
             var authorId = GetUserId();
 
-
             try
             {
                 var newPost = await postService.CreatePostAsync(dto, authorId);
                 return CreatedAtAction(nameof(GetPostById), new { id = newPost.Id }, newPost);
             }
-            catch (ArgumentException ex) // Catch specific errors like file size from the service
+            catch (ArgumentException ex)
             {
                 ModelState.AddModelError("ImageFile", ex.Message);
                 return BadRequest(ModelState);
             }
-            catch (Exception ex) // General error handling
+            catch
             {
-                // Consider logging the exception ex
-                Console.WriteLine($"Error creating post: {ex.Message}"); // Simple console log
                 return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro ao criar o post.");
             }
         }
-        // --- End CreatePost Update ---
-
 
         [HttpPost("{postId}/like")]
         public async Task<IActionResult> ToggleLike(int postId)
@@ -103,12 +93,7 @@ namespace GearShop.Controllers
         {
             var userId = GetUserId();
             var success = await postService.DeletePostAsync(id, userId);
-
-            if (!success)
-            {
-                return Forbid();
-            }
-
+            if (!success) return Forbid();
             return NoContent();
         }
     }
