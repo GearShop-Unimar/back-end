@@ -1,41 +1,91 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "build",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "build",
-                "${workspaceFolder}/GearShop.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary;ForceNoAlign"
-            ],
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "publish",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "publish",
-                "${workspaceFolder}/GearShop.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary;ForceNoAlign"
-            ],
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "watch",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "watch",
-                "run",
-                "--project",
-                "${workspaceFolder}/GearShop.csproj"
-            ],
-            "problemMatcher": "$msCompile"
-        }
-    ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build",
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"build",
+				"${workspaceFolder}/GearShop.csproj",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary;ForceNoAlign"
+			],
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "publish",
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"publish",
+				"${workspaceFolder}/GearShop.csproj",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary;ForceNoAlign"
+			],
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "watch",
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"watch",
+				"run",
+				"--project",
+				"${workspaceFolder}/GearShop.csproj"
+			],
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "Create xUnit Test Project",
+			"type": "shell",
+			"command": "dotnet new xunit -n GearShop.Tests"
+		},
+		{
+			"label": "Add Test Project to Solution",
+			"type": "shell",
+			"command": "dotnet sln add GearShop.Tests/GearShop.Tests.csproj"
+		},
+		{
+			"label": "Build Project",
+			"type": "shell",
+			"command": "dotnet build"
+		},
+		{
+			"label": "Add Xunit Packages and Restore",
+			"type": "shell",
+			"command": "dotnet add GearShop.Tests/GearShop.Tests.csproj package xunit; dotnet add GearShop.Tests/GearShop.Tests.csproj package xunit.runner.visualstudio; dotnet add GearShop.Tests/GearShop.Tests.csproj package Microsoft.NET.Test.Sdk; dotnet restore"
+		},
+		{
+			"label": "Clear NuGet Cache, Restore and Build",
+			"type": "shell",
+			"command": "dotnet nuget locals all --clear; dotnet restore; dotnet build"
+		},
+		{
+			"label": "Clear NuGet Cache, Restore and Build",
+			"type": "shell",
+			"command": "dotnet nuget locals all --clear; dotnet restore; dotnet build"
+		},
+		{
+			"label": "Remove Test Project from Solution",
+			"type": "shell",
+			"command": "dotnet sln remove GearShop.Tests/GearShop.Tests.csproj"
+		},
+		{
+			"label": "Build Main Project",
+			"type": "shell",
+			"command": "dotnet build"
+		},
+		{
+			"label": "Clean and Rebuild Solution",
+			"type": "shell",
+			"command": "rm -Recurse -Force bin,obj; cd GearShop.Tests; rm -Recurse -Force bin,obj; cd ..; dotnet restore; dotnet build"
+		},
+		{
+			"label": "Delete Test Project Folder and Rebuild",
+			"type": "shell",
+			"command": "rm -Recurse -Force GearShop.Tests; dotnet build"
+		}
+	]
 }

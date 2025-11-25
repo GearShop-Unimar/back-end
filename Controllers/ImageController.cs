@@ -23,21 +23,7 @@ namespace GearShop.Controllers
         }
 
 
-        [HttpGet("post/{postId}")]
-        [ResponseCache(Duration = 3600)]
-        public async Task<IActionResult> GetPostImage(int postId)
-        {
-            var postImage = await _context.Posts
-                .Where(p => p.Id == postId)
-                .Select(p => new { p.ImageData, p.ImageMimeType })
-                .FirstOrDefaultAsync();
 
-            if (postImage?.ImageData == null || string.IsNullOrEmpty(postImage.ImageMimeType))
-            {
-                return NotFound();
-            }
-            return File(postImage.ImageData, postImage.ImageMimeType);
-        }
 
         [HttpGet("user/{userId}")]
         [ResponseCache(Duration = 3600)]

@@ -11,5 +11,6 @@ namespace GearShop.Dtos.User
         public required string Estado { get; set; } = string.Empty;
         public required string Role { get; set; } = string.Empty;
         public required string Avatar { get; set; } = string.Empty;
+        public bool IsPremium { get; set; }
     }
 }

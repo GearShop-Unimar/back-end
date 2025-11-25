@@ -134,7 +134,7 @@ namespace GearShop.Controllers
                 var order = await orderRepository.GetByIdAsync(payment.OrderId.Value);
                 if (order is not null)
                 {
-                    order.Status = OrderStatus.Confirmed;
+                    order.Status = OrderStatus.Completed;
                     await orderRepository.UpdateAsync(order.Id, order);
                 }
             }

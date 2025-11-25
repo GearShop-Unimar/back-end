@@ -13,6 +13,7 @@ namespace GearShop.Models
         public int Id { get; set; }
         [Required, MaxLength(120)]
         public string Name { get; set; } = string.Empty;
+        public PremiumAccount? PremiumAccount { get; set; }
         [Required, EmailAddress, MaxLength(160)]
         public string Email { get; set; } = string.Empty;
         [Required, StringLength(60)]

@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "gearshop-unimar",
+        "projectKey": "GearShop-Unimar_back-end"
+    }
+}

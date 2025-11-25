@@ -14,10 +14,12 @@ namespace GearShop.Services
     public class PostService : IPostService
     {
         private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _env;
 
-        public PostService(AppDbContext context)
+        public PostService(AppDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
         public async Task<IEnumerable<PostDto>> GetFeedAsync(int currentUserId)
@@ -25,8 +27,7 @@ namespace GearShop.Services
             var posts = await _context.Posts
                 .Include(p => p.Author)
                 .Include(p => p.Likes)
-                .Include(p => p.Comments)
-                    .ThenInclude(c => c.Author)
+                .Include(p => p.Comments).ThenInclude(c => c.Author)
                 .OrderByDescending(p => p.CreatedAt)
                 .Take(20)
                 .ToListAsync();
@@ -39,8 +40,7 @@ namespace GearShop.Services
             var post = await _context.Posts
                 .Include(p => p.Author)
                 .Include(p => p.Likes)
-                .Include(p => p.Comments)
-                    .ThenInclude(c => c.Author)
+                .Include(p => p.Comments).ThenInclude(c => c.Author)
                 .FirstOrDefaultAsync(p => p.Id == postId);
 
             if (post == null) return null;
@@ -50,31 +50,28 @@ namespace GearShop.Services
 
         public async Task<PostDto> CreatePostAsync(CreatePostDto dto, int authorId)
         {
-            byte[]? imageData = null;
-            string? imageMimeType = null;
+            string? imageUrl = null;
 
-            if (dto.ImageFile != null && dto.ImageFile.Length > 0)
+            if (dto.ImageFile != null)
             {
-                using (var memoryStream = new MemoryStream())
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+                Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = Guid.NewGuid() + Path.GetExtension(dto.ImageFile.FileName);
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    await dto.ImageFile.CopyToAsync(memoryStream);
-                    if (memoryStream.Length < 5 * 1024 * 1024)
-                    {
-                        imageData = memoryStream.ToArray();
-                        imageMimeType = dto.ImageFile.ContentType;
-                    }
-                    else
-                    {
-                        throw new ArgumentException("Image file size exceeds the limit.");
-                    }
+                    await dto.ImageFile.CopyToAsync(stream);
                 }
+
+                imageUrl = $"/uploads/{fileName}";
             }
 
             var post = new Post
             {
                 Content = dto.Content,
-                ImageData = imageData,
-                ImageMimeType = imageMimeType,
+                ImageUrl = imageUrl,
                 UserId = authorId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -87,30 +84,20 @@ namespace GearShop.Services
             return MapPostToDto(post, authorId);
         }
 
-
         public async Task<ToggleLikeResultDto> ToggleLikeAsync(int postId, int userId)
         {
             var existingLike = await _context.PostLikes
                 .FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
 
             if (existingLike != null)
-            {
                 _context.PostLikes.Remove(existingLike);
-            }
             else
-            {
-                var newLike = new PostLike
-                {
-                    PostId = postId,
-                    UserId = userId,
-                    CreatedAt = DateTime.UtcNow
-                };
-                _context.PostLikes.Add(newLike);
-            }
+                _context.PostLikes.Add(new PostLike { PostId = postId, UserId = userId, CreatedAt = DateTime.UtcNow });
 
             await _context.SaveChangesAsync();
 
             var newLikeCount = await _context.PostLikes.CountAsync(l => l.PostId == postId);
+
             return new ToggleLikeResultDto
             {
                 NewLikeCount = newLikeCount,
@@ -151,10 +138,13 @@ namespace GearShop.Services
         {
             var post = await _context.Posts.FindAsync(postId);
             if (post == null) return false;
+            if (post.UserId != currentUserId) return false;
 
-            if (post.UserId != currentUserId)
+            if (!string.IsNullOrEmpty(post.ImageUrl))
             {
-                return false;
+                var physicalPath = Path.Combine(_env.WebRootPath, post.ImageUrl.TrimStart('/'));
+                if (File.Exists(physicalPath))
+                    File.Delete(physicalPath);
             }
 
             _context.Posts.Remove(post);
@@ -173,6 +163,7 @@ namespace GearShop.Services
                 LikeCount = post.Likes.Count,
                 CommentCount = post.Comments.Count,
                 IsLikedByCurrentUser = post.Likes.Any(l => l.UserId == currentUserId),
+                ImageUrl = post.ImageUrl,
                 RecentComments = post.Comments
                     .OrderByDescending(c => c.CreatedAt)
                     .Take(2)
@@ -195,15 +186,18 @@ namespace GearShop.Services
         private AuthorDto MapAuthorToDto(GearShop.Models.User? author)
         {
             if (author == null)
-            {
                 return new AuthorDto { Id = 0, Name = "Utilizador Desconhecido" };
-            }
 
             return new AuthorDto
             {
                 Id = author.Id,
-                Name = author.Name,
+                Name = author.Name
             };
+        }
+
+        public Task<(byte[]? data, string? mimeType)> GetImageAsync(int postId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

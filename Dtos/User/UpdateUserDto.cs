@@ -33,5 +33,7 @@ namespace GearShop.Dtos
 
         [Required, MaxLength(20)]
         public string NumeroCasa { get; set; } = string.Empty;
+
+        public bool IsPremium { get; set; }
     }
 }

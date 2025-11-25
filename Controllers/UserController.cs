@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using GearShop.Models;
-using GearShop.Dtos; // Assuming CreateUserDto and UpdateUserDto are here
+using GearShop.Dtos;
+using GearShop.Dtos.User; // Adicionado para UserDto
 using GearShop.Repositories;
+using GearShop.Services.Premium; // Adicionado para IPremiumAccountService
+using GearShop.Models.Enums; // Adicionado para SubscriptionStatus
 using BCrypt.Net;
 
 namespace GearShop.Controllers
@@ -14,22 +17,58 @@ namespace GearShop.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserRepository _repository;
+        private readonly IPremiumAccountService _premiumAccountService; // Adicionado
 
-        public UserController(IUserRepository repository) => _repository = repository;
+        public UserController(IUserRepository repository, IPremiumAccountService premiumAccountService) // Modificado
+        {
+            _repository = repository;
+            _premiumAccountService = premiumAccountService; // Adicionado
+        }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetAll()
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetAll()
         {
-            var items = await _repository.GetAllAsync();
-            return Ok(items);
+            var users = await _repository.GetAllAsync();
+            var userDtos = new List<UserDto>();
+            foreach (var user in users)
+            {
+                userDtos.Add(new UserDto
+                {
+                    Id = user.Id,
+                    Name = user.Name,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    ProfilePicture = user.ProfilePictureMimeType ?? string.Empty, // Ou a URL/Base64 da imagem
+                    Cidade = user.Cidade,
+                    Estado = user.Estado,
+                    Role = user.Role.ToString(),
+                    Avatar = user.ProfilePictureMimeType ?? string.Empty, // ou a URL/Base64 da imagem
+                    IsPremium = user.PremiumAccount != null
+                });
+        }
+            return Ok(userDtos);
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<User>> GetById(int id)
+        public async Task<ActionResult<UserDto>> GetById(int id)
         {
             var user = await _repository.GetByIdAsync(id);
             if (user is null) return NotFound(new { message = "Usuário não encontrado" });
-            return Ok(user);
+
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                ProfilePicture = user.ProfilePictureMimeType ?? string.Empty, // Ou a URL/Base64 da imagem
+                Cidade = user.Cidade,
+                Estado = user.Estado,
+                Role = user.Role.ToString(),
+                Avatar = user.ProfilePictureMimeType ?? string.Empty, // ou a URL/Base64 da imagem
+                IsPremium = user.PremiumAccount != null
+            };
+            return Ok(userDto);
         }
 
         [HttpPost]
@@ -60,6 +99,11 @@ namespace GearShop.Controllers
             };
 
             var created = await _repository.CreateAsync(user);
+
+            if (dto.IsPremium)
+            {
+                await _premiumAccountService.ActivatePremiumAsync(created.Id, 30, 15.99m); // 30 dias de duração e preço fixo
+            }
 
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
@@ -95,6 +139,17 @@ namespace GearShop.Controllers
             var updated = await _repository.UpdateAsync(id, userToUpdate);
 
             if (updated is null) return NotFound(new { message = "Usuário não encontrado" });
+
+            // Lógica para atualizar status premium
+            if (dto.IsPremium && updated.PremiumAccount == null)
+            {
+                await _premiumAccountService.ActivatePremiumAsync(updated.Id, 30, 15.99m); // 30 dias de duração e preço fixo
+            }
+            else if (!dto.IsPremium && updated.PremiumAccount != null)
+            {
+                await _premiumAccountService.CancelPremiumAsync(updated.Id);
+            }
+
             return Ok(updated);
         }
 

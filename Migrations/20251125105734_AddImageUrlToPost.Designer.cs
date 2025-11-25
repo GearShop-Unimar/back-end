@@ -4,6 +4,7 @@ using GearShop.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GearShop.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251125105734_AddImageUrlToPost")]
+    partial class AddImageUrlToPost
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -251,9 +254,6 @@ namespace GearShop.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");
 
-                    b.Property<bool>("IsRecurring")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<string>("LastFourDigits")
                         .HasMaxLength(4)
                         .HasColumnType("varchar(4)");
@@ -280,12 +280,6 @@ namespace GearShop.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
-
-                    b.Property<string>("SubscriptionId")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("TransactionId")
-                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -368,15 +362,15 @@ namespace GearShop.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<decimal>("MonthlyAmount")
+                        .HasColumnType("decimal(10,2)");
+
                     b.Property<DateTime?>("NextPaymentDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(10,2)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime(6)");

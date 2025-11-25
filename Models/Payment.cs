@@ -10,9 +10,9 @@ namespace GearShop.Models
         
         public int? OrderId { get; set; }
         public Order? Order { get; set; }
-        
-        public int? SubscriptionId { get; set; }
-        public Subscription? Subscription { get; set; }
+
+        public int? PremiumAccountId { get; set; }
+        public PremiumAccount? PremiumAccount { get; set; }
         
         [Required]
         public PaymentType PaymentType { get; set; }
@@ -23,6 +23,9 @@ namespace GearShop.Models
         [Required]
         [Column(TypeName = "decimal(10,2)")]
         public decimal Amount { get; set; }
+
+        public string? TransactionId { get; set; } // ID da transação do gateway de pagamento
+        public string? SubscriptionId { get; set; } // ID da assinatura para pagamentos recorrentes
         
         [Required]
         public DateTime CreatedAt { get; set; }
@@ -50,5 +53,7 @@ namespace GearShop.Models
         
         [MaxLength(100)]
         public string? CardBrand { get; set; }
+        
+        public bool IsRecurring { get; set; }
     }
 }
