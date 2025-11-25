@@ -20,7 +20,7 @@ namespace GearShop.Models
 
         [Required]
         [Column(TypeName = "decimal(10,2)")]
-        public decimal MonthlyAmount { get; set; }
+        public decimal Price { get; set; }
 
         [Required]
         public DateTime StartDate { get; set; }

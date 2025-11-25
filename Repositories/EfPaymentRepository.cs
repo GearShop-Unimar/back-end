@@ -115,5 +115,13 @@ namespace GearShop.Repositories
                 .Where(p => p.Status == PaymentStatus.Pending || p.Status == PaymentStatus.Processing)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Payment>> GetByPremiumAccountIdAsync(int premiumAccountId)
+        {
+            return await _context.Payments
+                .Where(p => p.PremiumAccountId == premiumAccountId)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+        }
     }
 }

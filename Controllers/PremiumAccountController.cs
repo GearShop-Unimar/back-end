@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using GearShop.Dtos.Payment;
 
 namespace GearShop.Controllers
 {
@@ -32,7 +34,7 @@ namespace GearShop.Controllers
             try
             {
                 var userId = GetUserId();
-                var premiumAccount = await _premiumAccountService.ActivatePremiumAsync(userId, activatePremiumDto.DurationDays);
+                var premiumAccount = await _premiumAccountService.ActivatePremiumAsync(userId, activatePremiumDto.DurationDays, 15.99m);
                 return Ok(premiumAccount);
             }
             catch (UnauthorizedAccessException ex)
@@ -58,6 +60,26 @@ namespace GearShop.Controllers
             catch (UnauthorizedAccessException ex)
             {
                 return Unauthorized(ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("payment-history")]
+        public async Task<ActionResult<IEnumerable<PaymentDto>>> GetPaymentHistory()
+        {
+            try
+            {
+                var userId = GetUserId();
+                var paymentHistory = await _premiumAccountService.GetPaymentHistoryAsync(userId);
+                return Ok(paymentHistory);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
 

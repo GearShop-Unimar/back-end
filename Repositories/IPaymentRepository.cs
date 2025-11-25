@@ -16,5 +16,6 @@ namespace GearShop.Repositories
         Task<bool> DeleteAsync(int id);
         Task<Payment?> GetByExternalIdAsync(string externalPaymentId);
         Task<IEnumerable<Payment>> GetPendingPaymentsAsync();
+        Task<IEnumerable<Payment>> GetByPremiumAccountIdAsync(int premiumAccountId);
     }
 }

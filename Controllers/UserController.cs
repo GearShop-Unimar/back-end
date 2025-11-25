@@ -102,7 +102,7 @@ namespace GearShop.Controllers
 
             if (dto.IsPremium)
             {
-                await _premiumAccountService.ActivatePremiumAsync(created.Id, 30); // 30 dias de duração
+                await _premiumAccountService.ActivatePremiumAsync(created.Id, 30, 15.99m); // 30 dias de duração e preço fixo
             }
 
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
@@ -143,7 +143,7 @@ namespace GearShop.Controllers
             // Lógica para atualizar status premium
             if (dto.IsPremium && updated.PremiumAccount == null)
             {
-                await _premiumAccountService.ActivatePremiumAsync(updated.Id, 30); // 30 dias de duração
+                await _premiumAccountService.ActivatePremiumAsync(updated.Id, 30, 15.99m); // 30 dias de duração e preço fixo
             }
             else if (!dto.IsPremium && updated.PremiumAccount != null)
             {

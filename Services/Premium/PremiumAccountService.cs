@@ -1,7 +1,10 @@
 using GearShop.Models;
 using GearShop.Repositories;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using GearShop.Dtos.Payment;
 
 namespace GearShop.Services.Premium
 {
@@ -9,14 +12,16 @@ namespace GearShop.Services.Premium
     {
         private readonly IPremiumAccountRepository _premiumAccountRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IPaymentRepository _paymentRepository;
 
-        public PremiumAccountService(IPremiumAccountRepository premiumAccountRepository, IUserRepository userRepository)
+        public PremiumAccountService(IPremiumAccountRepository premiumAccountRepository, IUserRepository userRepository, IPaymentRepository paymentRepository)
         {
             _premiumAccountRepository = premiumAccountRepository;
             _userRepository = userRepository;
+            _paymentRepository = paymentRepository;
         }
 
-        public async Task<PremiumAccount> ActivatePremiumAsync(int userId, int durationDays)
+        public async Task<PremiumAccount> ActivatePremiumAsync(int userId, int durationDays, decimal price)
         {
             var existingAccount = await _premiumAccountRepository.GetByUserIdAsync(userId);
             var now = DateTime.Now;
@@ -28,17 +33,20 @@ namespace GearShop.Services.Premium
                 throw new ArgumentException("User not found.");
             }
 
+            PremiumAccount premiumAccount;
+
             if (existingAccount == null)
             {
-                var newAccount = new PremiumAccount
+                premiumAccount = new PremiumAccount
                 {
                     UserId = userId,
                     StartDate = now,
                     EndDate = endDate,
                     Status = Models.Enums.SubscriptionStatus.Active,
+                    Price = price,
                     CreatedAt = now
                 };
-                return await _premiumAccountRepository.CreateAsync(newAccount);
+                await _premiumAccountRepository.CreateAsync(premiumAccount);
             }
             else
             {
@@ -51,10 +59,31 @@ namespace GearShop.Services.Premium
                     existingAccount.EndDate = endDate;
                 }
                 existingAccount.Status = Models.Enums.SubscriptionStatus.Active;
+                existingAccount.Price = price;
                 existingAccount.UpdatedAt = now;
                 await _premiumAccountRepository.UpdateAsync(existingAccount);
-                return existingAccount;
+                premiumAccount = existingAccount;
             }
+
+            // Simulação de interação com gateway de pagamento
+            string transactionId = Guid.NewGuid().ToString(); // Gerar um ID de transação fictício
+            string subscriptionId = Guid.NewGuid().ToString(); // Gerar um ID de assinatura fictício para pagamentos recorrentes
+
+            var payment = new Payment
+            {
+                PremiumAccountId = premiumAccount.Id,
+                PaymentType = Models.Enums.PaymentType.CreditCard, // Assumindo cartão de crédito para recorrência, pode ser ajustado
+                Status = Models.Enums.PaymentStatus.Approved,
+                Amount = price,
+                CreatedAt = now,
+                ProcessedAt = now,
+                IsRecurring = true,
+                TransactionId = transactionId,
+                SubscriptionId = subscriptionId
+            };
+            await _paymentRepository.CreateAsync(payment);
+
+            return premiumAccount;
         }
 
         public async Task<bool> IsUserPremiumAsync(int userId)
@@ -91,6 +120,37 @@ namespace GearShop.Services.Premium
                 account.UpdatedAt = DateTime.Now;
                 await _premiumAccountRepository.UpdateAsync(account);
             }
+        }
+
+        public async Task<IEnumerable<PaymentDto>> GetPaymentHistoryAsync(int userId)
+        {
+            var premiumAccount = await _premiumAccountRepository.GetByUserIdAsync(userId);
+
+            if (premiumAccount == null)
+            {
+                return new List<PaymentDto>();
+            }
+
+            var payments = await _paymentRepository.GetByPremiumAccountIdAsync(premiumAccount.Id);
+
+            return payments.Select(p => new PaymentDto
+            {
+                Id = p.Id,
+                Amount = p.Amount,
+                PaymentType = p.PaymentType,
+                Status = p.Status,
+                CreatedAt = p.CreatedAt,
+                ProcessedAt = p.ProcessedAt,
+                IsRecurring = p.IsRecurring
+            }).ToList();
+        }
+
+        public async Task ProcessRecurringPaymentsAsync()
+        {
+            // Implementar lógica para processar pagamentos recorrentes
+            // Por exemplo, buscar todas as contas premium ativas e
+            // verificar se um novo pagamento recorrente é devido.
+            await Task.CompletedTask; // Placeholder
         }
     }
 }
