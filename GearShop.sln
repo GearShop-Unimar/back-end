@@ -5,6 +5,8 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GearShop", "GearShop.csproj", "{FB18A4A4-9283-63E5-FDF6-F23EC854E460}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GearShop.Tests", "GearShop.Tests\GearShop.Tests.csproj", "{A2D0E1D9-901F-45A0-885F-E3712A468B1F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{FB18A4A4-9283-63E5-FDF6-F23EC854E460}.Release|x64.Build.0 = Release|Any CPU
 		{FB18A4A4-9283-63E5-FDF6-F23EC854E460}.Release|x86.ActiveCfg = Release|Any CPU
 		{FB18A4A4-9283-63E5-FDF6-F23EC854E460}.Release|x86.Build.0 = Release|Any CPU
+		{A2D0E1D9-901F-45A0-885F-E3712A468B1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2D0E1D9-901F-45A0-885F-E3712A468B1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2D0E1D9-901F-45A0-885F-E3712A468B1F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A2D0E1D9-901F-45A0-885F-E3712A468B1F}.Debug|x64.Build.0 = Debug|Any CPU
+		{A2D0E1D9-901F-45A0-885F-E3712A468B1F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A2D0E1D9-901F-45A0-885F-E3712A468B1F}.Debug|x86.Build.0 = Debug|Any CPU
+		{A2D0E1D9-901F-45A0-885F-E3712A468B1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2D0E1D9-901F-45A0-885F-E3712A468B1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2D0E1D9-901F-45A0-885F-E3712A468B1F}.Release|x64.ActiveCfg = Release|Any CPU
+		{A2D0E1D9-901F-45A0-885F-E3712A468B1F}.Release|x64.Build.0 = Release|Any CPU
+		{A2D0E1D9-901F-45A0-885F-E3712A468B1F}.Release|x86.ActiveCfg = Release|Any CPU
+		{A2D0E1D9-901F-45A0-885F-E3712A468B1F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

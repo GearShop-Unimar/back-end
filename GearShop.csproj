@@ -9,6 +9,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Compile Remove="GearShop.Tests\**\*.cs" />
+		<None Remove="GearShop.Tests\**\*" />
+		<Content Remove="GearShop.Tests\**\*" />
+		<EmbeddedResource Remove="GearShop.Tests\**\*" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.21" />
 
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />

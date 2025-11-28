@@ -85,3 +85,31 @@ A documentação completa dos endpoints está disponível através do Swagger.
 * **Services/**: Camada de lógica de negócio e regras (implementa interfaces `IProductService`, etc.).
 * **Middleware/**: Componentes de pipeline (ex: `GlobalExceptionMiddleware`).
 * **wwwroot/**: Pasta de arquivos estáticos, incluindo uploads de imagens.
+
+## ✅ Testes Automatizados
+
+O repositório agora inclui o projeto `GearShop.Tests`, baseado em **xUnit**, **FluentAssertions** e **NSubstitute**, cobrindo cenários de serviço como autenticação, catálogo de produtos e carrinho.
+
+### Estrutura
+
+```
+GearShop.Tests/
+├── Services/
+│   ├── Auth/AuthServiceTests.cs
+│   ├── Cart/CartServiceTests.cs
+│   ├── Premium/PremiumAccountServiceTests.cs
+│   ├── Product/ProductServiceTests.cs
+│   ├── Review/ReviewServiceTests.cs
+│   └── User/UserServiceTests.cs
+└── GearShop.Tests.csproj
+```
+
+### Executando os testes
+
+```bash
+dotnet test
+# ou
+dotnet test GearShop.Tests/GearShop.Tests.csproj
+```
+
+> **Nota:** durante a execução pode surgir o aviso `MSB3277` devido a dependências do Entity Framework com versões distintas (9.0.10 vs 9.0.0 trazida pelo provedor Pomelo). É apenas um *warning* conhecido e não impede a execução dos testes ou dos 22 cenários unitários atuais.
